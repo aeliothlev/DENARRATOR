@@ -26,19 +26,34 @@ jobs:
       - name: Install frontend deps
         run: npm ci
 
-      - name: Build Tauri app (Windows)
-        run: npm run build
+      - name: Prepare frontend dist
+        run: npm run prepare:dist
+
+      - name: Build Tauri Windows installers (NSIS + MSI)
+        run: npx tauri build --bundles nsis,msi
+
+      - name: Debug bundle output
+        shell: pwsh
+        run: |
+          Get-ChildItem -Path "src-tauri/target/release/bundle" -Recurse | Select-Object FullName
 
       - name: Upload MSI bundle
         uses: actions/upload-artifact@v4
         with:
           name: denarrator-windows-msi
-          path: src-tauri/target/release/bundle/msi/*.msi
+          path: src-tauri/target/release/bundle/**/*.msi
           if-no-files-found: warn
 
       - name: Upload NSIS bundle
         uses: actions/upload-artifact@v4
         with:
           name: denarrator-windows-nsis
-          path: src-tauri/target/release/bundle/nsis/*.exe
+          path: src-tauri/target/release/bundle/**/*.exe
+          if-no-files-found: warn
+
+      - name: Upload Windows app bundle (fallback)
+        uses: actions/upload-artifact@v4
+        with:
+          name: denarrator-windows-app
+          path: src-tauri/target/release/bundle/**/*.zip
           if-no-files-found: warn
