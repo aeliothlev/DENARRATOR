@@ -40,20 +40,13 @@ jobs:
       - name: Upload MSI bundle
         uses: actions/upload-artifact@v4
         with:
-          name: denarrator-windows-msi
+          name: DENARRATOR-Windows-MSI
           path: src-tauri/target/release/bundle/**/*.msi
           if-no-files-found: warn
 
       - name: Upload NSIS bundle
         uses: actions/upload-artifact@v4
         with:
-          name: denarrator-windows-nsis
+          name: DENARRATOR-Windows-EXE
           path: src-tauri/target/release/bundle/**/*.exe
-          if-no-files-found: warn
-
-      - name: Upload Windows app bundle (fallback)
-        uses: actions/upload-artifact@v4
-        with:
-          name: denarrator-windows-app
-          path: src-tauri/target/release/bundle/**/*.zip
           if-no-files-found: warn
