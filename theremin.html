@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Theremin</title>
+    <style>
+      :root { --bg:#f6f3ea; --ink:#2f3132; --soft:#55585a; --line:#b7b4ab; --accent:#ebdbc2; }
+      * { box-sizing:border-box; }
+      body { margin:0; min-height:100vh; background:radial-gradient(circle at top right,#faf7ef 0%,var(--bg) 65%); color:var(--ink); font-family:"Engebrechtre","Avenir Next",sans-serif; font-size:12px; text-transform:uppercase; letter-spacing:.04em; }
+      main { display:grid; grid-template-rows:auto auto minmax(0,1fr); gap:6px; padding:8px 12px 10px; min-height:100vh; }
+      .panel { border:1px solid var(--line); background:rgba(255,255,255,.2); padding:6px; }
+      .row { display:flex; gap:6px; align-items:center; flex-wrap:wrap; }
+      .grid { display:grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap:6px; }
+      .subgrid { display:grid; grid-template-columns: 1fr 1fr 1fr; gap:6px; margin-top:6px; }
+      button,input,select { border:1px solid var(--ink); background:transparent; color:var(--ink); font:inherit; font-size:11px; text-transform:uppercase; padding:5px 8px; }
+      button { cursor:pointer; }
+      button[aria-pressed="true"] { background:var(--ink); color:var(--bg); }
+      button:active:not(:disabled) { background-color: rgba(47,49,50,.14)!important; }
+      input[type="range"] { appearance:none; -webkit-appearance:none; background:transparent; height:18px; border:0; padding:0; }
+      input[type="range"]::-webkit-slider-runnable-track { height:2px; background:rgba(47,49,50,.45); border:1px solid rgba(47,49,50,.65); }
+      input[type="range"]::-webkit-slider-thumb { -webkit-appearance:none; appearance:none; width:12px; height:18px; margin-top:-9px; border:0; background:center/contain no-repeat url("./assets/slider-thumb.svg"); }
+      input[type="range"]::-moz-range-track { height:2px; background:rgba(47,49,50,.45); border:1px solid rgba(47,49,50,.65); }
+      input[type="range"]::-moz-range-thumb { width:12px; height:18px; border:0; border-radius:0; background:center/contain no-repeat url("./assets/slider-thumb.svg"); }
+      #wave { width:100%; height:120px; border:1px solid var(--line); background:rgba(255,255,255,.45); }
+      .value,.status { color:var(--soft); }
+      @media (max-width:980px){ .grid { grid-template-columns:1fr 1fr; } .subgrid { grid-template-columns:1fr 1fr; } }
+    </style>
+  </head>
+  <body>
+    <main>
+      <section class="panel">
+        <div class="row" style="justify-content:space-between;"><strong>THEREMIN</strong><span id="status" class="status">READY</span></div>
+        <div class="row" style="margin-top:6px;">
+          <button id="loadBtn" type="button">LOAD SOURCE</button>
+          <button id="cliplibBtn" type="button">FROM CLIPLIB</button>
+          <span id="sourceInfo" class="value">NO SOURCE</span>
+        </div>
+        <canvas id="wave" width="1400" height="240"></canvas>
+        <div class="grid" style="margin-top:6px;">
+          <label>GRAIN LEN <span id="lenVal" class="value">60ms</span><input id="lenInput" type="range" min="10" max="500" step="1" value="60"></label>
+          <label>START <span id="startVal" class="value">0.000s</span><input id="startInput" type="range" min="0" max="1000" step="1" value="0"></label>
+          <label><span id="pitchLabel">PITCH</span> <span id="pitchVal" class="value">0 st</span><input id="pitchInput" data-midi-target="theremin.pitch" data-midi-label="Theremin Pitch" type="range" min="0" max="100" step="1" value="50"></label>
+          <label><span id="volLabel">VOL</span> <span id="volVal" class="value">0%</span><input id="volInput" data-midi-target="theremin.vol" data-midi-label="Theremin Volume" type="range" min="0" max="100" step="1" value="0"></label>
+        </div>
+        <div class="subgrid">
+          <button id="modeBtn" type="button">MODE: THER</button>
+          <button id="pitchModeBtn" type="button">PITCH: FREE</button>
+          <label id="scaleWrap">SCALE
+            <select id="scaleSel">
+              <option value="CHROM">CHROM</option>
+              <option value="ION">ION</option>
+              <option value="DOR">DOR</option>
+              <option value="PHR">PHR</option>
+              <option value="LYD">LYD</option>
+              <option value="MIX">MIX</option>
+              <option value="AEO">AEO</option>
+              <option value="LOC">LOC</option>
+            </select>
+          </label>
+          <label id="rootWrap">ROOT
+            <select id="rootSel">
+              <option value="0">C</option>
+              <option value="1">C#</option>
+              <option value="2">D</option>
+              <option value="3">D#</option>
+              <option value="4">E</option>
+              <option value="5">F</option>
+              <option value="6">F#</option>
+              <option value="7">G</option>
+              <option value="8">G#</option>
+              <option value="9">A</option>
+              <option value="10">A#</option>
+              <option value="11">B</option>
+            </select>
+          </label>
+        </div>
+        <div class="subgrid">
+          <label id="glideWrap">GLIDE <span id="glideVal" class="value">18ms</span><input id="glideInput" type="range" min="0" max="50" step="1" value="18"></label>
+          <button id="tritonalsBtn" type="button" aria-pressed="false">TRITONALS OFF</button>
+          <button id="scratchMuteBtn" data-midi-target="theremin.scratch.mute" data-midi-label="Theremin Scratch Mute" type="button" aria-pressed="false" style="display:none;">MUTE</button>
+        </div>
+      </section>
+      <section class="panel">
+        <div class="row">
+          <button id="setGrainBtn" type="button">SET GRAIN</button>
+          <button id="onBtn" type="button" aria-pressed="false">OFF</button>
+          <button id="saveBtn" type="button">SAVE WAV</button>
+          <button id="sendBtn" type="button">TO LAZY</button>
+        </div>
+        <div class="row" style="margin-top:6px;"><span id="grainInfo" class="value">GRAIN: NONE</span></div>
+      </section>
+      <section class="panel"><div class="value">MIDI TARGETS: THEREMIN.PITCH + THEREMIN.VOL + THEREMIN.SCRATCH.MUTE</div></section>
+    </main>
+    <input id="fileInput" type="file" accept="audio/*,.wav,.aif,.aiff" hidden>
+    <script type="module" src="./theremin.js"></script>
+  </body>
+</html>

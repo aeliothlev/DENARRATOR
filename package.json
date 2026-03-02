@@ -1,0 +1,15 @@
+{
+  "name": "denarrator-desktop",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "prepare:dist": "mkdir -p dist && cp unified_tabs.html dist/unified_tabs.html && cp prim.html dist/prim.html && cp prim_module.js dist/prim_module.js && cp morphogo.html dist/morphogo.html && cp mirror_module.html dist/mirror_module.html && cp mirror_module.js dist/mirror_module.js && cp algebra_module.html dist/algebra_module.html && cp rcf_rzb.html dist/rcf_rzb.html && cp rcf_rzb.js dist/rcf_rzb.js && cp testmodule.html dist/testmodule.html && cp testmodule.js dist/testmodule.js && cp theremin.html dist/theremin.html && cp theremin.js dist/theremin.js && cp particles.html dist/particles.html && cp particles.js dist/particles.js && cp pictonal.html dist/pictonal.html && cp pictonal.js dist/pictonal.js && cp izer.html dist/izer.html && cp izer.js dist/izer.js && cp projektor.html dist/projektor.html && cp projektor.js dist/projektor.js && cp nuklear.html dist/nuklear.html && cp nuklear.js dist/nuklear.js && cp Negativraum.html dist/Negativraum.html && cp i2_module.html dist/i2_module.html && cp i2_module.js dist/i2_module.js && cp app.js dist/app.js && cp styles.css dist/styles.css && rm -rf dist/src && cp -R src dist/src && rm -rf dist/assets && cp -R assets dist/assets && rm -rf dist/lazy_quenzer && cp -R lazy_quenzer dist/lazy_quenzer",
+    "tauri": "tauri",
+    "dev": "npm run prepare:dist && tauri dev",
+    "build": "npm run prepare:dist && tauri build"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2"
+  }
+}

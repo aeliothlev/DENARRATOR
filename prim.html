@@ -1,0 +1,480 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PRIM</title>
+    <style>
+      :root {
+        --bg: #f6f3ea;
+        --ink: #2f3132;
+        --soft: #55585a;
+        --line: #b7b4ab;
+        --panel: rgba(228, 223, 211, 0.58);
+        --accent: #ebdbc2;
+        --alert: #8a3a2d;
+        --font-ui: "Engebrechtre", "Avenir Next", "Helvetica Neue", sans-serif;
+        --font-head: "TT Modernoir DemiBold", "TT Modernoir Bold", "Engebrechtre", "Avenir Next", "Helvetica Neue", sans-serif;
+      }
+      * { box-sizing: border-box; }
+      html, body { margin: 0; height: 100%; }
+      body {
+        font-family: var(--font-ui);
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: var(--ink);
+        background: radial-gradient(circle at top right, #faf7ef 0%, var(--bg) 65%);
+        display: grid;
+        grid-template-rows: auto auto 1fr auto;
+        gap: 6px;
+        padding: 7px;
+        font-size: 11px;
+        user-select: none;
+      }
+      .row {
+        border: 1px solid var(--line);
+        background: transparent;
+        padding: 6px;
+        display: grid;
+        gap: 6px;
+      }
+      .title {
+        margin: 0;
+        font-size: 14px;
+        font-family: var(--font-head);
+      }
+      .subtitle {
+        margin: 0;
+        font-size: 10px;
+        color: var(--soft);
+      }
+      .subtabs { display: inline-flex; gap: 6px; }
+      .prim-hidden { display: none !important; }
+      .grid-6 { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 6px; }
+      .grid-4 { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+      .grid-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+      .card {
+        border: 1px solid var(--line);
+        background: var(--panel);
+        padding: 6px;
+        display: grid;
+        gap: 6px;
+      }
+      .inline { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+      button, input, select {
+        border: 1px solid var(--ink);
+        background: transparent;
+        color: var(--ink);
+        padding: 4px 7px;
+        font: inherit;
+        font-size: 10px;
+        text-transform: uppercase;
+      }
+      button { cursor: pointer; }
+      button:active:not(:disabled) { background-color: rgba(47, 49, 50, 0.14) !important; }
+      button:disabled { opacity: 0.45; cursor: not-allowed; }
+      button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+      .toggle {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        color: var(--ink);
+      }
+      .toggle input {
+        appearance: none;
+        -webkit-appearance: none;
+        width: 40px;
+        height: 18px;
+        margin: 0;
+        border: 0;
+        background: center / contain no-repeat url("./assets/checkbox_inactive.svg");
+        cursor: pointer;
+      }
+      .toggle input:checked {
+        background-image: url("./assets/checkbox_active.svg");
+      }
+      .toggle input:disabled {
+        opacity: 0.45;
+        cursor: default;
+      }
+      #playBtn {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+      }
+      #playBtn::before {
+        content: "";
+        width: 14px;
+        height: 14px;
+        flex: 0 0 14px;
+        background-position: center;
+        background-repeat: no-repeat;
+        background-size: contain;
+      }
+      #playBtn::before {
+        background-image: url("./assets/transport_play.svg");
+      }
+      #playBtn[aria-pressed="true"]::before {
+        background-image: url("./assets/transport_play_active.svg");
+      }
+      label { display: grid; gap: 3px; color: var(--soft); font-size: 10px; }
+      input[type="range"] {
+        width: 100%;
+        padding: 0;
+        border: 0;
+        appearance: none;
+        -webkit-appearance: none;
+        background: transparent;
+        height: 18px;
+      }
+      input[type="range"]::-webkit-slider-runnable-track {
+        height: 2px;
+        background: rgba(47, 49, 50, 0.45);
+        border: 1px solid rgba(47, 49, 50, 0.65);
+      }
+      input[type="range"]::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 12px;
+        height: 18px;
+        margin-top: -9px;
+        border: 0;
+        background: center / contain no-repeat url("./assets/slider-thumb.svg");
+      }
+      input[type="range"]::-moz-range-track {
+        height: 2px;
+        background: rgba(47, 49, 50, 0.45);
+        border: 1px solid rgba(47, 49, 50, 0.65);
+      }
+      input[type="range"]::-moz-range-thumb {
+        width: 12px;
+        height: 18px;
+        border: 0;
+        border-radius: 0;
+        background: center / contain no-repeat url("./assets/slider-thumb.svg");
+      }
+      #waveCanvas {
+        width: 100%;
+        height: 100%;
+        min-height: 270px;
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.35);
+        touch-action: none;
+      }
+      #status {
+        margin: 0;
+        color: var(--soft);
+        font-size: 10px;
+      }
+      #status.error { color: var(--alert); }
+      .meter {
+        height: 7px;
+        border: 1px solid var(--line);
+        background: rgba(47, 49, 50, 0.06);
+      }
+      .meter > div {
+        height: 100%;
+        width: 0%;
+        background: var(--ink);
+      }
+      .tool-row {
+        display: grid;
+        grid-template-columns: repeat(11, minmax(0, 1fr));
+        gap: 6px;
+      }
+      .footer {
+        display: grid;
+        grid-template-columns: 1fr auto auto auto;
+        gap: 6px;
+        align-items: center;
+      }
+      .arith-ops {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 6px;
+      }
+      .arith-op-btn {
+        min-height: 42px;
+        font-size: 12px;
+        font-family: var(--font-head);
+        letter-spacing: 0.06em;
+      }
+      #arithWaveCanvas {
+        width: 100%;
+        height: 220px;
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.35);
+      }
+      .arith-rendering {
+        border: 1px solid var(--line);
+        background: rgba(255,255,255,0.5);
+        min-height: 10px;
+        position: relative;
+        overflow: hidden;
+      }
+      .arith-rendering > div {
+        height: 100%;
+        width: 0%;
+        background: rgba(47,49,50,0.75);
+        transition: width 160ms linear;
+      }
+      .arith-rendering.busy > div {
+        width: 100%;
+        animation: arithBusy 0.9s linear infinite;
+      }
+      @keyframes arithBusy {
+        from { transform: translateX(-100%); }
+        to { transform: translateX(100%); }
+      }
+      @media (max-width: 1300px) {
+        .grid-6 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+        .grid-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .tool-row { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+        .grid-3 { grid-template-columns: 1fr; }
+      }
+    </style>
+  </head>
+  <body>
+    <section class="row">
+      <p class="title">PRIM</p>
+      <p class="subtitle">Single-sample workshop editor</p>
+      <div class="subtabs">
+        <button id="primTabEditorBtn" type="button" aria-pressed="true">EDITOR</button>
+        <button id="primTabArithBtn" type="button" aria-pressed="false">ARITHMETIK</button>
+      </div>
+      <div class="grid-6">
+        <div class="card">
+          <div class="inline">
+            <button id="recBtn" type="button" aria-pressed="false">REC 8S</button>
+            <button id="stopRecBtn" type="button" disabled>STOP</button>
+            <button id="recRefreshBtn" type="button">REFRESH</button>
+            <button id="loadBtn" type="button">LOAD WAV</button>
+            <input id="loadInput" type="file" accept="audio/wav,audio/*,.wav,.aif,.aiff" hidden />
+          </div>
+          <label>
+            <span>Input</span>
+            <select id="recInputSelect">
+              <option value="">DEFAULT INPUT</option>
+            </select>
+          </label>
+          <div class="meter"><div id="recProgress"></div></div>
+          <p id="recDeviceInfo" class="subtitle">INPUT: DEFAULT</p>
+          <p id="sourceInfo" class="subtitle">SOURCE: NONE</p>
+        </div>
+        <div class="card">
+          <label><span>Length (sec)</span><input id="lengthSec" type="number" min="0.01" max="60" step="0.01" value="2.00" /></label>
+          <div class="inline">
+            <button id="lengthMinusBtn" type="button">-0.1S</button>
+            <button id="lengthPlusBtn" type="button">+0.1S</button>
+            <button id="applyLengthBtn" type="button">APPLY LEN</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="inline">
+            <button id="playBtn" type="button">PLAY</button>
+            <label class="toggle"><input id="loopBtn" type="checkbox" /> Loop: </label>
+          </div>
+          <div class="inline">
+            <button id="undoBtn" type="button">UNDO</button>
+            <button id="redoBtn" type="button">REDO</button>
+          </div>
+        </div>
+        <div class="card">
+          <label><span>Preset</span><select id="presetSelect"></select></label>
+          <div class="inline">
+            <button id="applyPresetBtn" type="button">APPLY PRESET</button>
+            <button id="snapBtn" type="button" aria-pressed="false">SNAP ZC OFF</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="inline">
+            <button id="saveBtn" type="button">SAVE WAV</button>
+            <button id="sendBtn" type="button">TO LAZY</button>
+          </div>
+          <p class="subtitle" id="sendInfo">TEMP: NONE</p>
+        </div>
+        <div class="card">
+          <p class="subtitle" id="stats">LEN: 0.00S | SEGS: 0 | SEL: NONE</p>
+          <p id="status">Ready</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="row prim-edit-only">
+      <div class="tool-row">
+        <button data-tool="ARROW" type="button" aria-pressed="true">TOOL ARROW</button>
+        <button data-tool="SELECT" type="button" aria-pressed="false">SELECT</button>
+        <button data-tool="SCISSOR" type="button" aria-pressed="false">SCISSOR</button>
+        <button data-tool="DUPLICATE" type="button" aria-pressed="false">DUP</button>
+        <button data-tool="DELETE" type="button" aria-pressed="false">DELETE</button>
+        <button data-tool="REVERSE" type="button" aria-pressed="false">REVERSE</button>
+        <button data-tool="HALF" type="button" aria-pressed="false">HALF</button>
+        <button data-tool="DOUBLE" type="button" aria-pressed="false">DOUBLE</button>
+        <button data-tool="TSTOP" type="button" aria-pressed="false">TSTOP</button>
+        <select id="dupMode">
+          <option>OVERWRITE</option>
+          <option>INSERT</option>
+          <option>STUTTER</option>
+          <option>MIRROR</option>
+          <option>PINGPONG</option>
+        </select>
+        <select id="dupCount">
+          <option>2</option>
+          <option>3</option>
+          <option selected>4</option>
+          <option>6</option>
+          <option>8</option>
+        </select>
+        <button id="dupExtendBtn" type="button" aria-pressed="false">INS EXT OFF</button>
+      </div>
+    </section>
+
+    <canvas id="waveCanvas" class="prim-edit-only"></canvas>
+
+    <section class="row prim-edit-only">
+      <div class="grid-4">
+        <div class="card">
+          <p class="subtitle">Filter</p>
+          <div class="inline"><button id="fOn" type="button" aria-pressed="false">ON</button><button id="fPreview" type="button" aria-pressed="false">PREVIEW</button></div>
+          <label><span>Type</span><select id="fType"><option value="lowpass">LOWPASS</option><option value="highpass">HIGHPASS</option><option value="bandpass">BANDPASS</option></select></label>
+          <label><span>Cutoff</span><input id="fCutoff" type="range" min="80" max="20000" value="8000" /></label>
+          <label><span>Q</span><input id="fQ" type="range" min="0.1" max="20" step="0.1" value="0.7" /></label>
+          <label><span>Drive</span><input id="fDrive" type="range" min="0" max="1" step="0.01" value="0" /></label>
+          <label><span>Mix</span><input id="fMix" type="range" min="0" max="1" step="0.01" value="1" /></label>
+          <div class="inline"><button id="fApply" type="button">APPLY</button><button id="fReset" type="button">RESET</button></div>
+        </div>
+        <div class="card">
+          <p class="subtitle">Reverb</p>
+          <div class="inline"><button id="rOn" type="button" aria-pressed="false">ON</button><button id="rPreview" type="button" aria-pressed="false">PREVIEW</button></div>
+          <label><span>Seconds</span><input id="rSec" type="range" min="0.1" max="4" step="0.1" value="0.8" /></label>
+          <label><span>PreDelay Ms</span><input id="rPredelay" type="range" min="0" max="120" step="1" value="10" /></label>
+          <label><span>Damp</span><input id="rDamp" type="range" min="0" max="1" step="0.01" value="0.5" /></label>
+          <label><span>Mix</span><input id="rMix" type="range" min="0" max="1" step="0.01" value="0.25" /></label>
+          <label><span>Tail Extend</span><button id="rTail" type="button" aria-pressed="true">ON</button></label>
+          <div class="inline"><button id="rApply" type="button">APPLY</button><button id="rReset" type="button">RESET</button></div>
+        </div>
+        <div class="card">
+          <p class="subtitle">Tapestop</p>
+          <div class="inline"><button id="tOn" type="button" aria-pressed="true">TOOL ENABLED</button><button id="tPreview" type="button" aria-pressed="false">PREVIEW</button></div>
+          <label><span>Time Ms</span><input id="tTime" type="range" min="80" max="2000" step="1" value="700" /></label>
+          <label><span>Curve</span><select id="tCurve"><option value="exp">EXP</option><option value="lin">LIN</option></select></label>
+          <label><span>Floor</span><input id="tFloor" type="range" min="0.005" max="0.2" step="0.001" value="0.02" /></label>
+          <label><span>Tail Fade Ms</span><input id="tFade" type="range" min="1" max="200" step="1" value="20" /></label>
+          <div class="inline"><button id="tApplyAtPlayhead" type="button">APPLY @ PLAYHEAD</button><button id="tReset" type="button">RESET</button></div>
+        </div>
+        <div class="card">
+          <p class="subtitle">Output</p>
+          <p class="subtitle" id="fxStatus">CPU: IDLE</p>
+          <div class="footer">
+            <button id="renderOutBtn" type="button">RENDER</button>
+            <button id="bakeOutBtn" type="button">BAKE OUT</button>
+            <button id="abBtn" type="button" aria-pressed="false">A/B OFF</button>
+            <button id="clearSelBtn" type="button">CLEAR SEL</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="arithView" class="row prim-hidden">
+      <div class="grid-3">
+        <div class="card">
+          <p class="subtitle">INPUT A</p>
+          <div class="inline">
+            <button id="arithLoadABtn" type="button">LOAD</button>
+            <button id="arithClrABtn" type="button">CLR</button>
+            <input id="arithLoadAInput" type="file" accept="audio/wav,audio/*,.wav,.aif,.aiff" hidden />
+          </div>
+          <p id="arithAInfo" class="subtitle">A: NONE</p>
+        </div>
+        <div class="card">
+          <p class="subtitle">INPUT B</p>
+          <div class="inline">
+            <button id="arithLoadBBtn" type="button">LOAD</button>
+            <button id="arithClrBBtn" type="button">CLR</button>
+            <input id="arithLoadBInput" type="file" accept="audio/wav,audio/*,.wav,.aif,.aiff" hidden />
+          </div>
+          <p id="arithBInfo" class="subtitle">B: NONE</p>
+        </div>
+        <div class="card">
+          <p class="subtitle">ROUTING</p>
+          <div class="inline">
+            <button id="arithSwapBtn" type="button">SWAP</button>
+          </div>
+          <label><span>LEN MODE</span>
+            <select id="arithLenMode">
+              <option value="TRIM">TRIM</option>
+              <option value="PAD">PAD</option>
+            </select>
+          </label>
+          <p id="arithStats" class="subtitle">A: 0.00S | B: 0.00S</p>
+        </div>
+      </div>
+      <div class="card">
+        <div class="arith-ops">
+          <button id="arithOpDiffBtn" class="arith-op-btn" type="button" aria-pressed="true">DIFF</button>
+          <button id="arithOpMultBtn" class="arith-op-btn" type="button" aria-pressed="false">MULT</button>
+          <button id="arithOpDivBtn" class="arith-op-btn" type="button" aria-pressed="false">DIV</button>
+        </div>
+        <div id="arithDiffPanel" class="grid-3">
+          <label><span>DIR</span>
+            <select id="arithDiffDir"><option value="A-B">A-B</option><option value="B-A">B-A</option></select>
+          </label>
+          <label><span>ALIGN</span>
+            <button id="arithDiffAlignBtn" type="button" aria-pressed="false">OFF</button>
+          </label>
+          <label><span>GAIN MATCH</span>
+            <select id="arithDiffGainMatch"><option value="OFF">OFF</option><option value="RMS">RMS</option><option value="LSQ">LSQ</option></select>
+          </label>
+          <label><span>CLAMP</span>
+            <button id="arithDiffClampBtn" type="button" aria-pressed="true">ON</button>
+          </label>
+        </div>
+        <div id="arithMultPanel" class="grid-3 prim-hidden">
+          <label><span>MODE</span>
+            <select id="arithMultMode"><option value="SAMPLE">SAMPLE</option><option value="ENV">ENV</option><option value="RING">RING</option></select>
+          </label>
+          <label><span>ENV SMOOTH (MS)</span>
+            <input id="arithMultEnvSmooth" type="range" min="5" max="200" step="1" value="30" />
+          </label>
+          <label><span>DC KILL</span>
+            <button id="arithMultDcKillBtn" type="button" aria-pressed="true">ON</button>
+          </label>
+          <label><span>MIX</span>
+            <input id="arithMultMix" type="range" min="0" max="100" step="1" value="100" />
+          </label>
+        </div>
+        <div id="arithDivPanel" class="grid-3 prim-hidden">
+          <label><span>MODE</span>
+            <select id="arithDivMode"><option value="SAFE">SAFE</option><option value="SHAPER">SHAPER</option></select>
+          </label>
+          <label><span>EPS</span>
+            <input id="arithDivEps" type="range" min="0.005" max="0.2" step="0.001" value="0.02" />
+          </label>
+          <label><span>GAIN</span>
+            <input id="arithDivGain" type="range" min="0" max="4" step="0.01" value="1.4" />
+          </label>
+          <label><span>SIGN</span>
+            <select id="arithDivSign"><option value="SIGNED">SIGNED</option><option value="ABS">ABS</option></select>
+          </label>
+          <label><span>CLAMP</span>
+            <button id="arithDivClampBtn" type="button" aria-pressed="true">ON</button>
+          </label>
+        </div>
+      </div>
+      <canvas id="arithWaveCanvas" width="1400" height="220"></canvas>
+      <div class="card">
+        <div class="inline">
+          <button id="arithRenderBtn" type="button">RENDER</button>
+          <button id="arithPlayBtn" type="button">PLAY</button>
+          <label class="toggle"><input id="arithLoopBtn" type="checkbox" /> Loop: </label>
+          <button id="arithSaveBtn" type="button">SAVE WAV</button>
+          <button id="arithSendBtn" type="button">TO LAZY</button>
+        </div>
+        <div id="arithRenderingBar" class="arith-rendering"><div></div></div>
+        <p id="arithRenderInfo" class="subtitle">TEMP: NONE</p>
+      </div>
+    </section>
+
+    <script type="module" src="./prim_module.js"></script>
+  </body>
+</html>

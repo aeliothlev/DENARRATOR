@@ -1,0 +1,28 @@
+export function getDomRefs() {
+  return {
+    tabs: [...document.querySelectorAll(".tab")],
+    fileA: document.getElementById("fileA"),
+    fileB: document.getElementById("fileB"),
+    swapABBtn: document.getElementById("swapABBtn"),
+    reverseA: document.getElementById("reverseA"),
+    reverseB: document.getElementById("reverseB"),
+    metaA: document.getElementById("metaA"),
+    metaB: document.getElementById("metaB"),
+    revBadgeA: document.getElementById("revBadgeA"),
+    revBadgeB: document.getElementById("revBadgeB"),
+    windowMs: document.getElementById("windowMs"),
+    durationMs: document.getElementById("durationMs"),
+    minLevelDb: document.getElementById("minLevelDb"),
+    windowMsOut: document.getElementById("windowMsOut"),
+    durationMsOut: document.getElementById("durationMsOut"),
+    minLevelDbOut: document.getElementById("minLevelDbOut"),
+    tabControls: document.getElementById("tabControls"),
+    exportMode: document.getElementById("exportMode"),
+    renderBtn: document.getElementById("renderBtn"),
+    playBtn: document.getElementById("playBtn"),
+    loopPreview: document.getElementById("loopPreview"),
+    exportBtn: document.getElementById("exportBtn"),
+    status: document.getElementById("status"),
+    waveformCanvas: document.getElementById("waveformCanvas"),
+  };
+}

@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Nuklear</title>
+    <style>
+      :root {
+        --bg: #f6f3ea;
+        --fg: #2f3132;
+        --grid: #8f9192;
+        --warn: #8a3a2d;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        height: 100vh;
+        overflow: hidden;
+        background: var(--bg);
+        color: var(--fg);
+        font-family: "Engebrechtre", "Avenir Next", sans-serif;
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: .04em;
+      }
+      main {
+        display: grid;
+        grid-template-rows: auto minmax(0, 1fr);
+        gap: 6px;
+        height: 100vh;
+        padding: 8px 10px;
+      }
+      .panel {
+        border: 1px solid var(--grid);
+        background: rgba(255, 255, 255, .55);
+        padding: 6px;
+      }
+      .row {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+      select {
+        border: 1px solid var(--fg);
+        background: transparent;
+        color: var(--fg);
+        font: inherit;
+        font-size: 11px;
+        text-transform: uppercase;
+        padding: 3px 6px;
+      }
+      #view {
+        width: 100%;
+        height: 100%;
+        border: 1px solid var(--grid);
+        background: #f1ede3;
+        display: block;
+        min-height: 0;
+      }
+      .soft { color: #55585a; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <section class="panel">
+        <div class="row">
+          <strong>NUKLEAR</strong>
+          <label>PERSIST
+            <select id="persist">
+              <option value="0.5">50</option>
+              <option value="0.7" selected>70</option>
+              <option value="0.85">85</option>
+            </select>
+          </label>
+          <span id="hud" class="soft">RMS 0.00 | PEAK 0.00 | CORR 0.00</span>
+          <span class="soft">2×3 MASTER GRID</span>
+        </div>
+      </section>
+      <section class="panel"><canvas id="view" width="1600" height="900"></canvas></section>
+    </main>
+    <script type="module" src="./nuklear.js"></script>
+  </body>
+</html>

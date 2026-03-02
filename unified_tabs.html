@@ -1,0 +1,4418 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DENARRATOR</title>
+    <style>
+      :root {
+        --bg: #ece8dc;
+        --panel: #f8f4ea;
+        --line: #b9b09f;
+        --ink: #2c2924;
+        --accent: #ebdbc2;
+        --font-ui: "Engebrechtre", "Avenir Next", "Segoe UI", sans-serif;
+        --font-head: "TT Modernoir DemiBold", "TT Modernoir Bold", "Engebrechtre", "Avenir Next", "Segoe UI", sans-serif;
+      }
+      * { box-sizing: border-box; }
+      html, body {
+        margin: 0;
+        height: 100%;
+        background: radial-gradient(circle at top left, #f7f2e8 0%, #e5dfd2 70%);
+        color: var(--ink);
+        font-family: var(--font-ui);
+      }
+      body {
+        display: grid;
+        grid-template-rows: auto 1fr;
+      }
+      select {
+        -webkit-appearance: none;
+        appearance: none;
+        border-radius: 0;
+        background-color: color-mix(in srgb, var(--panel) 90%, #fff 10%);
+        color: var(--ink);
+        border: 1px solid var(--line);
+        padding-right: 24px;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%232c2924' stroke-width='1.25' stroke-linecap='square'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 8px center;
+        background-size: 10px 6px;
+      }
+      select::-ms-expand { display: none; }
+      .splash {
+        position: fixed;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 200;
+        display: block;
+        opacity: 1;
+        transition: opacity 220ms ease;
+        pointer-events: none;
+      }
+      .splash.hidden {
+        opacity: 0;
+        pointer-events: none;
+      }
+      .splash img {
+        width: auto;
+        max-width: min(92vw, 900px);
+        height: auto;
+        user-select: none;
+        -webkit-user-drag: none;
+      }
+      header {
+        border-bottom: 1px solid var(--line);
+        background: color-mix(in srgb, var(--panel) 80%, white 20%);
+        backdrop-filter: blur(3px);
+        padding: 10px 14px 9px;
+        position: relative;
+      }
+      .topline {
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+        gap: 10px;
+      }
+      .brand-stack {
+        display: grid;
+        grid-template-rows: auto auto;
+        align-items: start;
+        gap: 4px;
+        min-width: 174px;
+      }
+      h1 {
+        margin: 0;
+        font-size: clamp(1.02rem, 1.7vw, 1.3rem);
+        letter-spacing: 0.03em;
+        text-transform: uppercase;
+        font-family: var(--font-head);
+      }
+      .action-hud {
+        border: 1px solid var(--line);
+        background: color-mix(in srgb, var(--panel) 92%, #fff 8%);
+        color: var(--ink);
+        min-height: 22px;
+        padding: 2px 8px;
+        font-family: "Avenir Next Condensed", "Menlo", "SFMono-Regular", monospace;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        display: inline-flex;
+        align-items: center;
+        white-space: nowrap;
+        max-width: 240px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .tabs {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        padding-right: 170px;
+      }
+      .tab {
+        border: 1px solid var(--line);
+        background: transparent;
+        color: var(--ink);
+        border-radius: 0;
+        padding: 6px 12px;
+        cursor: pointer;
+        font-family: var(--font-ui);
+        font-weight: 700;
+        letter-spacing: 0.03em;
+        font-size: 12px;
+        text-transform: uppercase;
+      }
+      button:active:not(:disabled) {
+        background-color: rgba(47, 49, 50, 0.14) !important;
+      }
+      .tab[aria-selected="true"] {
+        border-color: var(--accent);
+        background: color-mix(in srgb, var(--accent) 45%, #fff 55%);
+      }
+      .global-transport {
+        display: inline-flex;
+        gap: 6px;
+        margin-left: 8px;
+      }
+      .midi-btn {
+        min-width: 56px;
+        height: 42px;
+        border: 1px solid var(--ink);
+        background: transparent;
+        color: var(--ink);
+        border-radius: 0;
+        font-family: var(--font-ui);
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        cursor: pointer;
+      }
+      .midi-btn[aria-pressed="true"] {
+        background: rgba(47, 49, 50, 0.12);
+      }
+      .gbtn {
+        width: 42px;
+        height: 42px;
+        border: 1px solid var(--ink);
+        background: transparent;
+        color: var(--ink);
+        border-radius: 0;
+        display: inline-grid;
+        place-items: center;
+        cursor: pointer;
+      }
+      .gbtn[aria-pressed="true"] {
+        background: rgba(47, 49, 50, 0.18);
+      }
+      .gbtn.play::before {
+        content: "";
+        width: 0;
+        height: 0;
+        border-top: 10px solid transparent;
+        border-bottom: 10px solid transparent;
+        border-left: 16px solid var(--ink);
+        margin-left: 2px;
+      }
+      .gbtn.rec::before {
+        content: "";
+        width: 18px;
+        height: 18px;
+        border: 3px solid var(--ink);
+        border-radius: 999px;
+      }
+      .panes {
+        position: relative;
+        min-height: 0;
+        height: 100%;
+        padding-left: 38px;
+      }
+      .host-overlay-controls {
+        position: absolute;
+        right: 8px;
+        top: 6px;
+        z-index: 35;
+        pointer-events: none;
+      }
+      .panic-btn {
+        pointer-events: auto;
+        width: 62px;
+        height: 62px;
+        border: 1px solid var(--line);
+        background: color-mix(in srgb, var(--panel) 86%, #fff 14%);
+        color: var(--ink);
+        border-radius: 0;
+        padding: 0;
+        cursor: pointer;
+        font-family: var(--font-head);
+        font-size: 14px;
+        letter-spacing: 0.01em;
+        text-transform: lowercase;
+      }
+      .panic-btn[data-state="idle"] {
+        background-image: url("./assets/kill_button.svg");
+        background-position: center;
+        background-repeat: no-repeat;
+        background-size: 46px 46px;
+        color: transparent;
+      }
+      .panic-btn[data-state="armed"] {
+        border-color: #e7a35f;
+        color: #e7a35f;
+        background: rgba(231, 163, 95, 0.14);
+      }
+      .panic-btn[data-state="resetting"] {
+        opacity: 0.75;
+        cursor: progress;
+      }
+      .global-meter {
+        position: absolute;
+        left: 6px;
+        top: 6px;
+        height: calc(100% - 12px);
+        width: 28px;
+        display: block;
+        pointer-events: auto;
+        z-index: 20;
+        opacity: 0.98;
+      }
+      .pane {
+        position: absolute;
+        inset: 0 0 0 38px;
+        display: none;
+      }
+      .pane.active {
+        display: block;
+      }
+      .midi-panel {
+        position: fixed;
+        right: 82px;
+        top: 62px;
+        width: min(560px, calc(100vw - 24px));
+        max-height: min(74vh, 760px);
+        overflow: auto;
+        border: 1px solid var(--line);
+        background: color-mix(in srgb, var(--panel) 90%, #fff 10%);
+        padding: 8px;
+        z-index: 100;
+        display: grid;
+        gap: 8px;
+      }
+      .midi-panel.hidden {
+        display: none;
+      }
+      .midi-row {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        flex-wrap: wrap;
+      }
+      .midi-row button,
+      .midi-row select {
+        border: 1px solid var(--ink);
+        background: transparent;
+        color: var(--ink);
+        border-radius: 0;
+        font-family: var(--font-ui);
+        font-size: 11px;
+        text-transform: uppercase;
+        padding: 5px 8px;
+      }
+      .midi-row button[aria-pressed="true"] {
+        background: rgba(47, 49, 50, 0.14);
+      }
+      .midi-status {
+        font-size: 11px;
+        color: #55585a;
+      }
+      .midi-list {
+        border: 1px solid var(--line);
+        background: rgba(255,255,255,0.45);
+        padding: 6px;
+        display: grid;
+        gap: 4px;
+      }
+      .midi-item {
+        border: 1px solid var(--line);
+        background: rgba(228, 223, 211, 0.45);
+        padding: 5px;
+        display: grid;
+        grid-template-columns: 1fr auto auto;
+        gap: 6px;
+        align-items: center;
+        font-size: 11px;
+      }
+      .midi-toast {
+        position: fixed;
+        right: 82px;
+        top: 62px;
+        border: 1px solid var(--line);
+        background: color-mix(in srgb, var(--panel) 90%, #fff 10%);
+        color: var(--ink);
+        z-index: 120;
+        padding: 6px 9px;
+        font-size: 11px;
+      }
+      .midi-toast.hidden {
+        display: none;
+      }
+      .browser-panel {
+        position: fixed;
+        right: 82px;
+        top: 62px;
+        width: min(980px, calc(100vw - 24px));
+        max-height: min(80vh, 860px);
+        overflow: auto;
+        border: 1px solid var(--line);
+        background: color-mix(in srgb, var(--panel) 90%, #fff 10%);
+        padding: 8px;
+        z-index: 101;
+        display: grid;
+        gap: 8px;
+      }
+      .browser-panel.hidden {
+        display: none;
+      }
+      .browser-header,
+      .browser-row {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .browser-row input,
+      .browser-row button,
+      .browser-row select,
+      .browser-item button {
+        border: 1px solid var(--ink);
+        background: transparent;
+        color: var(--ink);
+        border-radius: 0;
+        font-family: var(--font-ui);
+        font-size: 11px;
+        text-transform: uppercase;
+        padding: 5px 8px;
+      }
+      .browser-row input {
+        flex: 1;
+        min-width: 180px;
+        text-transform: none;
+      }
+      .browser-tabs {
+        display: flex;
+        gap: 6px;
+      }
+      .browser-tab[aria-selected="true"] {
+        background: rgba(47, 49, 50, 0.14);
+      }
+      .browser-list {
+        border: 1px solid var(--line);
+        background: rgba(255,255,255,0.45);
+        display: grid;
+        gap: 4px;
+        padding: 4px;
+      }
+      .browser-item {
+        border: 1px solid var(--line);
+        background: rgba(228, 223, 211, 0.38);
+        display: grid;
+        grid-template-columns: auto 1fr auto;
+        gap: 8px;
+        align-items: center;
+        padding: 5px;
+      }
+      .browser-item-meta {
+        display: grid;
+        gap: 2px;
+      }
+      .browser-item-name {
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.03em;
+        text-transform: uppercase;
+      }
+      .browser-item-sub {
+        font-size: 10px;
+        color: #55585a;
+      }
+      .browser-actions {
+        display: flex;
+        gap: 4px;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+      }
+      .browser-wave {
+        width: 120px;
+        height: 32px;
+        border: 1px solid var(--line);
+        background: rgba(255,255,255,0.66);
+      }
+      .browser-status {
+        font-size: 11px;
+        color: #55585a;
+      }
+      .browser-chooser {
+        position: fixed;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        width: min(360px, calc(100vw - 28px));
+        border: 1px solid var(--line);
+        background: color-mix(in srgb, var(--panel) 92%, #fff 8%);
+        z-index: 140;
+        padding: 8px;
+        display: grid;
+        gap: 8px;
+      }
+      .browser-chooser.hidden {
+        display: none;
+      }
+      .browser-chooser-actions {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+      }
+      .browser-chooser-actions button {
+        border: 1px solid var(--ink);
+        background: transparent;
+        color: var(--ink);
+        border-radius: 0;
+        font-family: var(--font-ui);
+        font-size: 11px;
+        text-transform: uppercase;
+        padding: 5px 8px;
+      }
+      .paths-modal-backdrop {
+        position: fixed;
+        inset: 0;
+        background: rgba(236, 232, 220, 0.76);
+        display: grid;
+        place-items: center;
+        z-index: 220;
+      }
+      .paths-modal-backdrop.hidden {
+        display: none;
+      }
+      .paths-modal {
+        width: min(620px, calc(100vw - 28px));
+        border: 1px solid var(--line);
+        background: color-mix(in srgb, var(--panel) 94%, #fff 6%);
+        padding: 12px;
+        display: grid;
+        gap: 10px;
+      }
+      .paths-modal h2 {
+        margin: 0;
+        font-size: 14px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+      .paths-modal .path-row {
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.5);
+        padding: 7px 8px;
+        font-size: 12px;
+        word-break: break-all;
+      }
+      .paths-modal .actions {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+      }
+      .paths-modal .actions button {
+        border: 1px solid var(--ink);
+        background: transparent;
+        color: var(--ink);
+        border-radius: 0;
+        font-family: var(--font-ui);
+        font-size: 11px;
+        text-transform: uppercase;
+        padding: 6px 10px;
+      }
+      .paths-modal .sub {
+        font-size: 11px;
+        color: #55585a;
+      }
+      .quit-modal-backdrop {
+        position: fixed;
+        inset: 0;
+        background: rgba(236, 232, 220, 0.8);
+        display: grid;
+        place-items: center;
+        z-index: 260;
+      }
+      .quit-modal-backdrop.hidden {
+        display: none;
+      }
+      .quit-modal {
+        width: min(520px, calc(100vw - 28px));
+        border: 1px solid var(--line);
+        background: color-mix(in srgb, var(--panel) 94%, #fff 6%);
+        padding: 12px;
+        display: grid;
+        gap: 10px;
+      }
+      .quit-modal h2 {
+        margin: 0;
+        font-size: 14px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+      .quit-modal .actions {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+      }
+      .quit-modal .actions button {
+        border: 1px solid var(--ink);
+        background: transparent;
+        color: var(--ink);
+        border-radius: 0;
+        font-family: var(--font-ui);
+        font-size: 11px;
+        text-transform: uppercase;
+        padding: 6px 10px;
+      }
+      .quit-modal input {
+        border: 1px solid var(--line);
+        background: rgba(255,255,255,0.64);
+        color: var(--ink);
+        border-radius: 0;
+        font-family: var(--font-ui);
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+        padding: 7px 8px;
+      }
+      html.dn-squish .dn-btn {
+        --press-scale: 0.88;
+        --press-rotate: -1.2deg;
+        --press-y: 1px;
+        --press-dur: 55ms;
+        --release-dur: 220ms;
+        --ease-in: cubic-bezier(0.2, 0.0, 0.15, 1);
+        --ease-out-back: cubic-bezier(0.16, 0.95, 0.24, 1.35);
+        transform: translateZ(0) translateY(0) rotate(0deg) scale(1);
+        transition:
+          transform var(--release-dur) var(--ease-out-back),
+          filter var(--release-dur) var(--ease-out-back),
+          opacity 140ms var(--ease-in),
+          background-color 140ms var(--ease-in),
+          color 140ms var(--ease-in),
+          box-shadow var(--release-dur) var(--ease-out-back);
+        filter: brightness(1) saturate(1);
+        box-shadow: 0 0 0 rgba(0,0,0,0), 0 0 0 rgba(255,255,255,0);
+        will-change: transform, filter, opacity, background-color, color, box-shadow;
+      }
+      html.dn-squish .dn-btn.is-pressing {
+        transition:
+          transform var(--press-dur) var(--ease-in),
+          filter var(--press-dur) var(--ease-in),
+          opacity var(--press-dur) var(--ease-in),
+          background-color var(--press-dur) var(--ease-in),
+          color var(--press-dur) var(--ease-in),
+          box-shadow var(--press-dur) var(--ease-in);
+        transform: translateZ(0) translateY(var(--press-y)) rotate(var(--press-rotate)) scale(var(--press-scale));
+        filter: brightness(1.16) saturate(1.45);
+        box-shadow: 0 0 10px rgba(255,255,255,0.2);
+      }
+      html.dn-squish .dn-btn.is-on {
+        filter: brightness(1.15) saturate(1.42);
+      }
+      @media (prefers-reduced-motion: reduce) {
+        html.dn-squish .dn-btn {
+          transition: none !important;
+          transform: none !important;
+        }
+      }
+      iframe {
+        width: 100%;
+        height: 100%;
+        border: 0;
+        background: white;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="splash" class="splash" aria-hidden="true">
+      <img src="./assets/DenarratorSplashscreen.svg" alt="" />
+    </div>
+    <header>
+      <div class="host-overlay-controls">
+        <button id="panicBtn" class="panic-btn" type="button" aria-label="Global panic kill">¬</button>
+      </div>
+      <div class="topline">
+        <div class="brand-stack">
+          <h1>DENARRATOR</h1>
+          <div id="actionHud" class="action-hud" aria-live="polite">READY</div>
+        </div>
+        <nav class="tabs" role="tablist" aria-label="App tabs">
+          <button class="tab" type="button" role="tab" aria-selected="true" data-target="lazy-pane">Lazy.SEQ</button>
+          <button class="tab" type="button" role="tab" aria-selected="false" data-target="prim-pane">PRIM</button>
+          <button class="tab" type="button" role="tab" aria-selected="false" data-target="i2-pane">i^2=-1</button>
+          <button class="tab" type="button" role="tab" aria-selected="false" data-target="morphogo-pane">Morphogo</button>
+          <button class="tab" type="button" role="tab" aria-selected="false" data-target="mirror-pane">Mirror</button>
+          <button class="tab" type="button" role="tab" aria-selected="false" data-target="algebra-pane">Algebra</button>
+          <button class="tab" type="button" role="tab" aria-selected="false" data-target="rcf-pane">RCF/RZB</button>
+          <button class="tab" type="button" role="tab" aria-selected="false" data-target="testmodule-pane">Testmodule</button>
+          <button class="tab" type="button" role="tab" aria-selected="false" data-target="theremin-pane">Theremin</button>
+          <button class="tab" type="button" role="tab" aria-selected="false" data-target="particles-pane">Particles</button>
+          <button class="tab" type="button" role="tab" aria-selected="false" data-target="pictonal-pane">Pictonal</button>
+          <button class="tab" type="button" role="tab" aria-selected="false" data-target="izer-pane">=izer</button>
+          <button class="tab" type="button" role="tab" aria-selected="false" data-target="projektor-pane">Projektor</button>
+          <button class="tab" type="button" role="tab" aria-selected="false" data-target="nuklear-pane">Nuklear</button>
+          <button class="tab" type="button" role="tab" aria-selected="false" data-target="negativraum-pane">NEGATIVRAUM</button>
+        </nav>
+        <div class="global-transport" aria-label="Global transport">
+          <button id="globalPlayBtn" class="gbtn play" type="button" aria-label="Global Play/Pause" aria-pressed="false"></button>
+          <button id="globalRecBtn" class="gbtn rec" type="button" aria-label="Global Record" aria-pressed="false"></button>
+          <button id="browserBtn" class="midi-btn" type="button" aria-pressed="false">LIB</button>
+          <button id="moduleResetBtn" class="midi-btn" type="button" aria-pressed="false">RESET</button>
+          <button id="squishBtn" class="midi-btn" type="button" aria-pressed="true">SQUISH</button>
+          <button id="midiBtn" class="midi-btn" type="button" aria-pressed="false">MIDI</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="panes">
+      <canvas id="globalMeter" class="global-meter" aria-hidden="true"></canvas>
+      <section id="lazy-pane" class="pane active" role="tabpanel">
+        <iframe title="Lazy.SEQ" src="./lazy_quenzer/index.html" allow="autoplay"></iframe>
+      </section>
+      <section id="prim-pane" class="pane" role="tabpanel">
+        <iframe title="PRIM" src="./prim.html" allow="microphone; autoplay"></iframe>
+      </section>
+      <section id="i2-pane" class="pane" role="tabpanel">
+        <iframe title="i^2=-1" src="./i2_module.html" allow="microphone; autoplay"></iframe>
+      </section>
+      <section id="morphogo-pane" class="pane" role="tabpanel">
+        <iframe title="Morphogo" src="./morphogo.html" allow="autoplay"></iframe>
+      </section>
+      <section id="mirror-pane" class="pane" role="tabpanel">
+        <iframe title="Mirror" src="./mirror_module.html" allow="autoplay"></iframe>
+      </section>
+      <section id="algebra-pane" class="pane" role="tabpanel">
+        <iframe title="Algebra" src="./algebra_module.html" allow="autoplay"></iframe>
+      </section>
+      <section id="rcf-pane" class="pane" role="tabpanel">
+        <iframe title="RCF/RZB" src="./rcf_rzb.html" allow="autoplay"></iframe>
+      </section>
+      <section id="testmodule-pane" class="pane" role="tabpanel">
+        <iframe title="Testmodule" src="./testmodule.html" allow="autoplay"></iframe>
+      </section>
+      <section id="theremin-pane" class="pane" role="tabpanel">
+        <iframe title="Theremin" src="./theremin.html" allow="autoplay"></iframe>
+      </section>
+      <section id="particles-pane" class="pane" role="tabpanel">
+        <iframe title="Particles" src="./particles.html" allow="autoplay"></iframe>
+      </section>
+      <section id="pictonal-pane" class="pane" role="tabpanel">
+        <iframe title="Pictonal" src="./pictonal.html" allow="autoplay"></iframe>
+      </section>
+      <section id="izer-pane" class="pane" role="tabpanel">
+        <iframe title="=izer" src="./izer.html" allow="autoplay"></iframe>
+      </section>
+      <section id="projektor-pane" class="pane" role="tabpanel">
+        <iframe title="Projektor" src="./projektor.html" allow="autoplay"></iframe>
+      </section>
+      <section id="nuklear-pane" class="pane" role="tabpanel">
+        <iframe title="Nuklear" src="./nuklear.html" allow="autoplay"></iframe>
+      </section>
+      <section id="negativraum-pane" class="pane" role="tabpanel">
+        <iframe title="NEGATIVRAUM" src="./Negativraum.html" allow="autoplay"></iframe>
+      </section>
+    </main>
+    <aside id="midiPanel" class="midi-panel hidden" aria-hidden="true">
+      <div class="midi-row">
+        <strong>MIDI MAP</strong>
+        <button id="midiCloseBtn" type="button">X</button>
+      </div>
+      <div class="midi-row">
+        <button id="midiMapToggleBtn" type="button" aria-pressed="false">MAP OFF</button>
+        <button id="midiRefreshBtn" type="button">REFRESH DEV</button>
+        <select id="midiDeviceSelect"></select>
+        <button id="midiConnectBtn" type="button">CONNECT</button>
+        <button id="midiDisconnectBtn" type="button">DISCONNECT</button>
+      </div>
+      <div id="midiStatus" class="midi-status">No mapping. MAP on -> click target -> move CC.</div>
+      <div class="midi-row">
+        <button id="midiSaveSeshBtn" type="button">SAVE .SESH</button>
+        <button id="midiLoadSeshBtn" type="button">LOAD .SESH</button>
+      </div>
+      <div id="midiMapList" class="midi-list"></div>
+    </aside>
+    <aside id="browserPanel" class="browser-panel hidden" aria-hidden="true">
+      <div class="browser-header">
+        <strong>DENARRATOR BROWSER</strong>
+        <button id="browserCloseBtn" type="button">X</button>
+      </div>
+      <div class="browser-row">
+        <div id="browserTabs" class="browser-tabs">
+          <button class="browser-tab" type="button" data-browser-tab="SESH" aria-selected="false">SESH</button>
+          <button class="browser-tab" type="button" data-browser-tab="CLIPS" aria-selected="true">CLIPS</button>
+          <button class="browser-tab" type="button" data-browser-tab="PRESETS" aria-selected="false">PRESETS</button>
+        </div>
+        <button id="browserRefreshBtn" type="button">REFRESH</button>
+      </div>
+      <div class="browser-row">
+        <input id="browserSearchInput" type="text" placeholder="SEARCH..." />
+        <button id="browserSortBtn" type="button">SORT: NEW</button>
+      </div>
+      <div id="browserStatus" class="browser-status">Ready.</div>
+      <div id="browserList" class="browser-list"></div>
+    </aside>
+    <div id="browserChooser" class="browser-chooser hidden" aria-hidden="true">
+      <div id="browserChooserTitle"><strong>LOAD AS</strong></div>
+      <div id="browserChooserSub" class="browser-status">Choose target.</div>
+      <div id="browserChooserActions" class="browser-chooser-actions"></div>
+      <div class="browser-row">
+        <button id="browserChooserCancelBtn" type="button">CANCEL</button>
+      </div>
+    </div>
+    <div id="midiToast" class="midi-toast hidden" aria-hidden="true"></div>
+    <div id="pathsModalBackdrop" class="paths-modal-backdrop hidden" aria-hidden="true">
+      <div class="paths-modal">
+        <h2>SET DENARRATOR FOLDER</h2>
+        <div>Choose where DENARRATOR stores Mater / Pater / Infans.</div>
+        <div id="pathsModalPath" class="path-row">~/Documents/DENARRATOR</div>
+        <div class="actions">
+          <button id="pathsUseDefaultBtn" type="button">USE DEFAULT</button>
+          <button id="pathsChooseBtn" type="button">CHOOSE...</button>
+        </div>
+        <div id="pathsModalStatus" class="sub"></div>
+      </div>
+    </div>
+    <div id="quitModalBackdrop" class="quit-modal-backdrop hidden" aria-hidden="true">
+      <div class="quit-modal" id="quitModalStep1">
+        <h2>Save?</h2>
+        <div>Unsaved changes detected.</div>
+        <div class="actions">
+          <button id="quitSaveBtn" type="button">SAVE</button>
+          <button id="quitDontBtn" type="button">DON'T</button>
+          <button id="quitCancelBtn" type="button">CANCEL</button>
+        </div>
+      </div>
+      <div class="quit-modal hidden" id="quitModalStep2">
+        <h2>Session Title</h2>
+        <input id="quitTitleInput" type="text" />
+        <div class="actions">
+          <button id="quitTitleOkBtn" type="button">OK</button>
+          <button id="quitTitleCancelBtn" type="button">CANCEL</button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const tabs = Array.from(document.querySelectorAll('.tab'));
+      const panes = Array.from(document.querySelectorAll('.pane'));
+      const frameEls = Array.from(document.querySelectorAll('iframe'));
+      for (const frame of frameEls) {
+        frame.addEventListener('load', () => {
+          applyGlobalTactileToFrames();
+        });
+      }
+      const tabByPaneId = new Map();
+      const paneSoundState = new Map();
+      const lazyFrame = document.querySelector('#lazy-pane iframe');
+      const primFrame = document.querySelector('#prim-pane iframe');
+      const i2Frame = document.querySelector('#i2-pane iframe');
+      const morphFrame = document.querySelector('#morphogo-pane iframe');
+      const mirrorFrame = document.querySelector('#mirror-pane iframe');
+      const algebraFrame = document.querySelector('#algebra-pane iframe');
+      const rcfFrame = document.querySelector('#rcf-pane iframe');
+      const testmoduleFrame = document.querySelector('#testmodule-pane iframe');
+      const thereminFrame = document.querySelector('#theremin-pane iframe');
+      const particlesFrame = document.querySelector('#particles-pane iframe');
+      const pictonalFrame = document.querySelector('#pictonal-pane iframe');
+      const izerFrame = document.querySelector('#izer-pane iframe');
+      const projektorFrame = document.querySelector('#projektor-pane iframe');
+      const nuklearFrame = document.querySelector('#nuklear-pane iframe');
+      const negFrame = document.querySelector('#negativraum-pane iframe');
+      const meterCanvas = document.getElementById('globalMeter');
+      const meterCtx = meterCanvas.getContext('2d');
+      const panicBtn = document.getElementById('panicBtn');
+      const globalPlayBtn = document.getElementById('globalPlayBtn');
+      const globalRecBtn = document.getElementById('globalRecBtn');
+      const browserBtn = document.getElementById('browserBtn');
+      const moduleResetBtn = document.getElementById('moduleResetBtn');
+      const squishBtn = document.getElementById('squishBtn');
+      const midiBtn = document.getElementById('midiBtn');
+      const browserPanel = document.getElementById('browserPanel');
+      const browserCloseBtn = document.getElementById('browserCloseBtn');
+      const browserRefreshBtn = document.getElementById('browserRefreshBtn');
+      const browserSearchInput = document.getElementById('browserSearchInput');
+      const browserSortBtn = document.getElementById('browserSortBtn');
+      const browserStatus = document.getElementById('browserStatus');
+      const browserList = document.getElementById('browserList');
+      const browserTabButtons = Array.from(document.querySelectorAll('.browser-tab'));
+      const browserChooser = document.getElementById('browserChooser');
+      const browserChooserTitle = document.getElementById('browserChooserTitle');
+      const browserChooserSub = document.getElementById('browserChooserSub');
+      const browserChooserActions = document.getElementById('browserChooserActions');
+      const browserChooserCancelBtn = document.getElementById('browserChooserCancelBtn');
+      const actionHud = document.getElementById('actionHud');
+      const midiPanel = document.getElementById('midiPanel');
+      const midiCloseBtn = document.getElementById('midiCloseBtn');
+      const midiMapToggleBtn = document.getElementById('midiMapToggleBtn');
+      const midiRefreshBtn = document.getElementById('midiRefreshBtn');
+      const midiDeviceSelect = document.getElementById('midiDeviceSelect');
+      const midiConnectBtn = document.getElementById('midiConnectBtn');
+      const midiDisconnectBtn = document.getElementById('midiDisconnectBtn');
+      const midiStatus = document.getElementById('midiStatus');
+      const midiMapList = document.getElementById('midiMapList');
+      const midiSaveSeshBtn = document.getElementById('midiSaveSeshBtn');
+      const midiLoadSeshBtn = document.getElementById('midiLoadSeshBtn');
+      const midiToast = document.getElementById('midiToast');
+      const pathsModalBackdrop = document.getElementById('pathsModalBackdrop');
+      const pathsModalPath = document.getElementById('pathsModalPath');
+      const pathsModalStatus = document.getElementById('pathsModalStatus');
+      const pathsUseDefaultBtn = document.getElementById('pathsUseDefaultBtn');
+      const pathsChooseBtn = document.getElementById('pathsChooseBtn');
+      const quitModalBackdrop = document.getElementById('quitModalBackdrop');
+      const quitModalStep1 = document.getElementById('quitModalStep1');
+      const quitModalStep2 = document.getElementById('quitModalStep2');
+      const quitSaveBtn = document.getElementById('quitSaveBtn');
+      const quitDontBtn = document.getElementById('quitDontBtn');
+      const quitCancelBtn = document.getElementById('quitCancelBtn');
+      const quitTitleInput = document.getElementById('quitTitleInput');
+      const quitTitleOkBtn = document.getElementById('quitTitleOkBtn');
+      const quitTitleCancelBtn = document.getElementById('quitTitleCancelBtn');
+      const splashEl = document.getElementById('splash');
+      const meterSvgImage = new Image();
+      let meterSvgReady = false;
+      meterSvgImage.addEventListener('load', () => {
+        meterSvgReady = true;
+      });
+      meterSvgImage.src = './assets/meter_and_limiter.svg';
+      let meterLevel = 0;
+      let meterTarget = 0;
+      const hostMeterHistory = [];
+      const HOST_METER_HISTORY_MAX = 2048;
+      let lastNuklearFrameAt = 0;
+      let masterVolume = 1;
+      let draggingVolume = false;
+      let limiterEnabled = false;
+      let limiterRect = null;
+      let activePaneId = 'lazy-pane';
+      let panicState = 'idle';
+      let panicArmTimer = null;
+      let panicResetting = false;
+      let panicVolumeOverride = null;
+      let panicResetSeq = 1;
+      let hostAudioContext = null;
+      let hostMasterGain = null;
+      let hostPanicGain = null;
+      let hostIzerDryGain = null;
+      let hostIzerWetGain = null;
+      let hostIzerOutGain = null;
+      let hostIzerFilters = null;
+      const hostIzerDefaults = {
+        enabled: true,
+        mix: 0.25,
+        bands: {
+          hpf: { enabled: false, freq: 20, q: 0.7 },
+          low: { enabled: true, freq: 120, gainDb: 0 },
+          mid1: { enabled: true, freq: 800, gainDb: 0, q: 0.7 },
+          mid2: { enabled: true, freq: 4500, gainDb: 0, q: 0.7 },
+          high: { enabled: true, freq: 9000, gainDb: 0 },
+        },
+      };
+      let hostIzerState = JSON.parse(JSON.stringify(hostIzerDefaults));
+      try {
+        const savedIzerState = localStorage.getItem('denarrator.izer.host');
+        if (savedIzerState) hostIzerState = JSON.parse(savedIzerState);
+      } catch {}
+      let hostTapStream = null;
+      let hostTapAudioContext = null;
+      let hostTapSource = null;
+      let hostTapSplitter = null;
+      let hostTapAnalyserL = null;
+      let hostTapAnalyserR = null;
+      let hostTapAnalyserF = null;
+      let hostTapReady = false;
+      let hostTapRequested = false;
+      const hudState = { text: 'READY', ts: 0, priority: 0, ttlMs: 0, token: 0 };
+      let hudTimer = null;
+      let globalRecActive = false;
+      let globalRecStream = null;
+      let globalRecChunksL = [];
+      let globalRecChunksR = [];
+      let globalRecFrames = 0;
+      let globalRecProcessor = null;
+      let globalRecTapSource = null;
+      let globalRecSinkGain = null;
+      let midiPanelOpen = false;
+      let browserPanelOpen = false;
+      let midiMapMode = false;
+      let midiArmedTargetId = null;
+      let midiArmedTargetLabel = null;
+      let midiDevices = [];
+      let midiActiveDeviceId = '';
+      let midiToastTimer = null;
+      let midiMapSeq = 1;
+      let squishEnabled = true;
+      const tactileInstalledDocs = new WeakSet();
+      const TACTILE_STYLE_ID = 'denarrator-global-tactile-style';
+      const MIDI_MAP_LIMIT = 16;
+      const midiTargetRegistry = new Map();
+      const browserCapsRegistry = new Map();
+      const browserWaveCache = new Map();
+      const browserDecodeCache = new Map();
+      const browserDefaultsCaps = [
+        {
+          moduleId: 'lazy',
+          accepts: { audio: true, image: false, session: false, preset: false },
+          loadTargets: [{ id: 'CLIPLIB', label: 'Add to Clip Library', kind: 'audio' }],
+          defaults: { audioTarget: 'CLIPLIB' },
+        },
+        {
+          moduleId: 'prim',
+          accepts: { audio: true, image: false, session: false, preset: false },
+          loadTargets: [{ id: 'MAIN', label: 'Load Sample', kind: 'audio' }],
+          defaults: { audioTarget: 'MAIN' },
+        },
+        {
+          moduleId: 'i2',
+          accepts: { audio: true, image: false, session: false, preset: false },
+          loadTargets: [{ id: 'RAW', label: 'Load Raw', kind: 'audio' }],
+          defaults: { audioTarget: 'RAW' },
+        },
+        {
+          moduleId: 'morphogo',
+          accepts: { audio: true, image: false, session: false, preset: false },
+          loadTargets: [
+            { id: 'A', label: 'Load as A', kind: 'audio' },
+            { id: 'B', label: 'Load as B', kind: 'audio' },
+          ],
+          defaults: { audioTarget: 'A' },
+        },
+        {
+          moduleId: 'mirror',
+          accepts: { audio: true, image: false, session: false, preset: false },
+          loadTargets: [
+            { id: 'A', label: 'Load as A', kind: 'audio' },
+            { id: 'B', label: 'Load as B', kind: 'audio' },
+          ],
+          defaults: { audioTarget: 'A' },
+        },
+        {
+          moduleId: 'algebra',
+          accepts: { audio: true, image: false, session: false, preset: false },
+          loadTargets: [
+            { id: 'A', label: 'Load as A', kind: 'audio' },
+            { id: 'B', label: 'Load as B', kind: 'audio' },
+          ],
+          defaults: { audioTarget: 'A' },
+        },
+        {
+          moduleId: 'rcf_rzb',
+          accepts: { audio: true, image: false, session: false, preset: false },
+          loadTargets: [{ id: 'slot_1', label: 'Load Slot 1', kind: 'audio' }],
+          defaults: { audioTarget: 'slot_1' },
+        },
+        {
+          moduleId: 'testmodule',
+          accepts: { audio: true, image: false, session: false, preset: false },
+          loadTargets: [{ id: 'slot_1', label: 'Load Slot 1', kind: 'audio' }],
+          defaults: { audioTarget: 'slot_1' },
+        },
+        {
+          moduleId: 'negativraum',
+          accepts: { audio: true, image: false, session: false, preset: true },
+          loadTargets: [
+            { id: 'IN', label: 'Load Input', kind: 'audio' },
+            { id: 'REF', label: 'Load Reference', kind: 'audio' },
+            { id: 'PRESET', label: 'Apply .negat', kind: 'preset' },
+          ],
+          defaults: { audioTarget: 'IN', presetTarget: 'PRESET' },
+        },
+        {
+          moduleId: 'diff',
+          accepts: { audio: true, image: false, session: false, preset: false },
+          loadTargets: [{ id: 'VIEW', label: 'Set View Source', kind: 'audio' }],
+          defaults: { audioTarget: 'VIEW' },
+        },
+        {
+          moduleId: 'pictonal',
+          accepts: { audio: false, image: true, session: false, preset: true },
+          loadTargets: [
+            { id: 'IMG', label: 'Add Image Clip', kind: 'image' },
+            { id: 'PRESET', label: 'Apply Pictonal Preset', kind: 'preset' },
+          ],
+          defaults: { imageTarget: 'IMG', presetTarget: 'PRESET' },
+        },
+        {
+          moduleId: 'izer',
+          accepts: { audio: false, image: false, session: false, preset: true },
+          loadTargets: [{ id: 'PRESET', label: 'Apply =izer Preset', kind: 'preset' }],
+          defaults: { presetTarget: 'PRESET' },
+        },
+        {
+          moduleId: 'theremin',
+          accepts: { audio: true, image: false, session: false, preset: false },
+          loadTargets: [{ id: 'SRC', label: 'Load Source', kind: 'audio' }],
+          defaults: { audioTarget: 'SRC' },
+        },
+        {
+          moduleId: 'projektor',
+          accepts: { audio: true, image: false, session: false, preset: true },
+          loadTargets: [
+            { id: 'A', label: 'Load to A', kind: 'audio' },
+            { id: 'B', label: 'Load to B', kind: 'audio' },
+            { id: 'C', label: 'Load to C', kind: 'audio' },
+            { id: 'D', label: 'Load to D', kind: 'audio' },
+            { id: 'PRESET', label: 'Apply Projektor Preset', kind: 'preset' },
+          ],
+          defaults: { audioTarget: 'A', presetTarget: 'PRESET' },
+        },
+      ];
+      const browserState = {
+        tab: 'CLIPS',
+        sort: 'NEW',
+        query: '',
+        clips: [],
+        sessions: [],
+        presets: [],
+        lastTargetByModule: {},
+        auditionPath: '',
+      };
+      let browserAudioContext = null;
+      let browserAuditionNode = null;
+      let browserChooserResolver = null;
+      const midiMappings = [];
+      let denPaths = null;
+      const dialogLastDirByKind = {};
+      const moduleDirtyState = {};
+      let hostDirty = false;
+      let resetArmTimer = null;
+      let resetArmed = false;
+      let sessionExportCollector = null;
+      let nuklearSubscribed = false;
+      let nuklearFps = 30;
+      let nuklearFftSize = 512;
+      const globalPlayState = {
+        active: new Set(),
+        sources: new Map(),
+      };
+
+      for (const tab of tabs) {
+        const paneId = String(tab.dataset.target || '');
+        if (!paneId) continue;
+        tabByPaneId.set(paneId, tab);
+      }
+      for (const pane of panes) {
+        paneSoundState.set(pane.id, { level: 0, target: 0 });
+      }
+
+      function activate(targetId) {
+        activePaneId = targetId;
+        tabs.forEach((tab) => {
+          const active = tab.dataset.target === targetId;
+          tab.setAttribute('aria-selected', active ? 'true' : 'false');
+        });
+        panes.forEach((pane) => {
+          const isActive = pane.id === targetId;
+          pane.classList.toggle('active', isActive);
+          const frame = pane.querySelector('iframe');
+          if (frame?.contentWindow) {
+            frame.contentWindow.postMessage({
+              type: 'DENARRATOR_PANE_ACTIVE',
+              version: 1,
+              payload: { paneId: pane.id, active: isActive }
+            }, '*');
+          }
+        });
+      }
+
+      function paneIdFromSource(sourceWindow) {
+        for (const pane of panes) {
+          const frame = pane.querySelector('iframe');
+          if (frame?.contentWindow === sourceWindow) {
+            return pane.id;
+          }
+        }
+        return null;
+      }
+
+      function updateTabPulseVisuals() {
+        for (const [paneId, sound] of paneSoundState.entries()) {
+          sound.target *= 0.955;
+          sound.level = Math.max(sound.target, sound.level * 0.88);
+          const strength = Math.max(0, Math.min(1, sound.level * 2.2));
+          const tab = tabByPaneId.get(paneId);
+          if (!tab) continue;
+          const selected = tab.getAttribute('aria-selected') === 'true';
+          if (strength <= 0.01) {
+            tab.style.removeProperty('border-color');
+            tab.style.removeProperty('background-color');
+            tab.style.removeProperty('box-shadow');
+            continue;
+          }
+          const borderAlpha = 0.35 + (0.55 * strength);
+          const fillAlpha = (selected ? 0.2 : 0.08) + ((selected ? 0.35 : 0.24) * strength);
+          const glowAlpha = 0.05 + (0.35 * strength);
+          tab.style.borderColor = `rgba(235, 219, 194, ${borderAlpha.toFixed(3)})`;
+          tab.style.backgroundColor = `rgba(235, 219, 194, ${fillAlpha.toFixed(3)})`;
+          tab.style.boxShadow = `0 0 ${Math.round(5 + (8 * strength))}px rgba(235, 219, 194, ${glowAlpha.toFixed(3)})`;
+        }
+      }
+
+      tabs.forEach((tab) => {
+        tab.addEventListener('click', () => activate(tab.dataset.target));
+      });
+
+      function getActiveFrame() {
+        if (activePaneId === 'lazy-pane') return lazyFrame;
+        if (activePaneId === 'prim-pane') return primFrame;
+        if (activePaneId === 'i2-pane') return i2Frame;
+        if (activePaneId === 'morphogo-pane') return morphFrame;
+        if (activePaneId === 'mirror-pane') return mirrorFrame;
+        if (activePaneId === 'algebra-pane') return algebraFrame;
+        if (activePaneId === 'rcf-pane') return rcfFrame;
+        if (activePaneId === 'testmodule-pane') return testmoduleFrame;
+        if (activePaneId === 'theremin-pane') return thereminFrame;
+        if (activePaneId === 'particles-pane') return particlesFrame;
+        if (activePaneId === 'pictonal-pane') return pictonalFrame;
+        if (activePaneId === 'izer-pane') return izerFrame;
+        if (activePaneId === 'projektor-pane') return projektorFrame;
+        if (activePaneId === 'nuklear-pane') return nuklearFrame;
+        if (activePaneId === 'negativraum-pane') return negFrame;
+        return null;
+      }
+
+      function getInvoke() {
+        const ownInvoke = window.__TAURI__?.core?.invoke;
+        if (typeof ownInvoke === 'function') return ownInvoke;
+        return null;
+      }
+
+      function pathDirname(path) {
+        const p = String(path || '');
+        if (!p) return '';
+        const idx = Math.max(p.lastIndexOf('/'), p.lastIndexOf('\\'));
+        if (idx <= 0) return '';
+        return p.slice(0, idx);
+      }
+
+      function setPathsModalOpen(open) {
+        const isOpen = Boolean(open);
+        pathsModalBackdrop?.classList.toggle('hidden', !isOpen);
+        pathsModalBackdrop?.setAttribute('aria-hidden', String(!isOpen));
+      }
+
+      function setPathsModalStatus(text) {
+        if (pathsModalStatus) pathsModalStatus.textContent = String(text || '');
+      }
+
+      function defaultDirForKind(kind) {
+        const k = String(kind || '').toLowerCase();
+        if (dialogLastDirByKind[k]) return dialogLastDirByKind[k];
+        if (!denPaths) return '';
+        if (k === 'wav_load' || k === 'wav_save') return String(denPaths.mater || '');
+        if (k === 'quence_load' || k === 'quence_save') return String(denPaths.pater || '');
+        if (k === 'sesh_load' || k === 'sesh_save') return String(denPaths.sesh || '');
+        if (k === 'preset_load' || k === 'preset_save') return String(denPaths.presets || '');
+        if (k === 'log_export') return String(denPaths.logs || '');
+        return String(denPaths.base || '');
+      }
+
+      function rememberDialogDir(kind, selectedPath) {
+        const dir = pathDirname(selectedPath);
+        if (!dir) return;
+        dialogLastDirByKind[String(kind || '').toLowerCase()] = dir;
+      }
+
+      async function openFileDialogWithDefaults({ kind, filters }) {
+        const invoke = getInvoke();
+        if (!invoke) return null;
+        try {
+          const path = await invoke('dialog_open_file', {
+            defaultDir: defaultDirForKind(kind) || null,
+            filters: Array.isArray(filters) ? filters : null,
+            dialogKey: kind ? `host.${String(kind).toLowerCase()}` : null,
+          });
+          if (path) rememberDialogDir(kind, path);
+          return path || null;
+        } catch {
+          return null;
+        }
+      }
+
+      async function saveFileDialogWithDefaults({ kind, suggestedName, filters }) {
+        const invoke = getInvoke();
+        if (!invoke) return null;
+        try {
+          const path = await invoke('dialog_save_file', {
+            defaultDir: defaultDirForKind(kind) || null,
+            suggestedName: suggestedName || null,
+            filters: Array.isArray(filters) ? filters : null,
+            dialogKey: kind ? `host.${String(kind).toLowerCase()}` : null,
+          });
+          if (path) rememberDialogDir(kind, path);
+          return path || null;
+        } catch {
+          return null;
+        }
+      }
+
+      async function pickFolderWithDefault(defaultDir) {
+        const invoke = getInvoke();
+        if (!invoke) return null;
+        try {
+          const path = await invoke('dialog_pick_folder', { defaultDir: defaultDir || null });
+          return path || null;
+        } catch {
+          return null;
+        }
+      }
+
+      async function ensureDenarratorPaths() {
+        const invoke = getInvoke();
+        if (!invoke) return null;
+        let existing = null;
+        try {
+          existing = await invoke('paths_get');
+        } catch {
+          existing = null;
+        }
+        if (existing?.base) {
+          denPaths = existing;
+          return existing;
+        }
+
+        let defaultBase = '';
+        try {
+          defaultBase = String(await invoke('paths_default_base'));
+        } catch {}
+        if (!defaultBase) defaultBase = '~/Documents/DENARRATOR';
+        if (pathsModalPath) pathsModalPath.textContent = defaultBase;
+        setPathsModalStatus('');
+        setPathsModalOpen(true);
+
+        return await new Promise((resolve) => {
+          const onUseDefault = async () => {
+            setPathsModalStatus('Creating folder tree...');
+            try {
+              const p = await invoke('paths_set_base', { baseDir: defaultBase });
+              denPaths = p;
+              setPathsModalOpen(false);
+              resolve(p);
+            } catch (error) {
+              setPathsModalStatus(`Failed: ${String(error?.message || error)}`);
+            }
+          };
+          const onChoose = async () => {
+            const picked = await pickFolderWithDefault(defaultBase);
+            if (!picked) return;
+            if (pathsModalPath) pathsModalPath.textContent = picked;
+            setPathsModalStatus('Creating folder tree...');
+            try {
+              const p = await invoke('paths_set_base', { baseDir: picked });
+              denPaths = p;
+              setPathsModalOpen(false);
+              resolve(p);
+            } catch (error) {
+              setPathsModalStatus(`Failed: ${String(error?.message || error)}`);
+            }
+          };
+          if (pathsUseDefaultBtn) pathsUseDefaultBtn.onclick = () => { void onUseDefault(); };
+          if (pathsChooseBtn) pathsChooseBtn.onclick = () => { void onChoose(); };
+        });
+      }
+
+      async function setupTauriMidiListener() {
+        const listen = window.__TAURI__?.event?.listen;
+        if (typeof listen !== 'function') return;
+        try {
+          await listen('midi://message', (event) => {
+            processMidiCc(event?.payload || {});
+          });
+          await listen('midi://devices', (event) => {
+            const devices = Array.isArray(event?.payload) ? event.payload : [];
+            midiDevices = devices.map((d) => ({
+              id: String(d?.id ?? ''),
+              name: String(d?.name ?? 'MIDI Input'),
+            }));
+            if (!midiDevices.some((d) => d.id === midiActiveDeviceId)) {
+              midiActiveDeviceId = midiDevices[0]?.id || '';
+            }
+            updateMidiUi();
+          });
+        } catch {
+          // MIDI events unavailable.
+        }
+      }
+
+      function arrayBufferToBase64(arrayBuffer) {
+        const bytes = new Uint8Array(arrayBuffer);
+        let bin = '';
+        const chunk = 0x8000;
+        for (let i = 0; i < bytes.length; i += chunk) {
+          bin += String.fromCharCode(...bytes.subarray(i, i + chunk));
+        }
+        return btoa(bin);
+      }
+
+      function coerceBase64(value) {
+        return typeof value === 'string' && value.length > 0 ? value : '';
+      }
+
+      async function saveBlobWithDialog(blob, suggestedName) {
+        const invoke = getInvoke();
+        if (typeof invoke === 'function') {
+          try {
+            const dataBase64 = arrayBufferToBase64(await blob.arrayBuffer());
+            const savePath = await saveFileDialogWithDefaults({
+              kind: 'wav_save',
+              suggestedName,
+              filters: [{ name: 'WAV', extensions: ['wav'] }],
+            });
+            if (!savePath) return 'cancelled';
+            const saved = await invoke('save_blob_to_path', { dataBase64, path: savePath });
+            return saved ? 'saved' : 'cancelled';
+          } catch {
+            // fallback below
+          }
+        }
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = suggestedName;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+        return 'saved';
+      }
+
+      function postToFrame(frame, payload) {
+        try {
+          frame?.contentWindow?.postMessage(payload, '*');
+        } catch {
+          // Ignore unavailable frame windows.
+        }
+      }
+
+      function broadcastToAllFrames(payload) {
+        for (const frame of frameEls) {
+          postToFrame(frame, payload);
+        }
+      }
+
+      function broadcastPathsToAllFrames() {
+        if (!denPaths) return;
+        broadcastToAllFrames({
+          type: 'PATHS_BROADCAST',
+          version: 1,
+          payload: denPaths,
+        });
+      }
+
+      function updateGlobalPlayIndicator() {
+        const isOn = globalPlayState.active.size > 0;
+        globalPlayBtn?.setAttribute('aria-pressed', String(isOn));
+      }
+
+      function setSquishEnabled(enabled) {
+        squishEnabled = Boolean(enabled);
+        document.documentElement.classList.toggle('dn-squish', squishEnabled);
+        squishBtn?.setAttribute('aria-pressed', String(squishEnabled));
+        squishBtn && (squishBtn.textContent = squishEnabled ? 'SQUISH ON' : 'SQUISH OFF');
+        try {
+          localStorage.setItem('denarrator.ui.squish', squishEnabled ? '1' : '0');
+        } catch {}
+        broadcastToAllFrames({
+          type: 'UI_SQUISH_SET',
+          version: 1,
+          payload: { enabled: squishEnabled },
+        });
+        applyGlobalTactileToFrames();
+      }
+
+      function renderHud(text) {
+        if (!actionHud) return;
+        const t = String(text || 'READY').toUpperCase();
+        actionHud.textContent = t || 'READY';
+      }
+
+      function hudSet(text, priority = 1, ttlMs = 1500) {
+        const now = Date.now();
+        const p = Number.isFinite(Number(priority)) ? Number(priority) : 1;
+        const ttl = Math.max(0, Number.isFinite(Number(ttlMs)) ? Number(ttlMs) : 1500);
+        const expiresAt = hudState.ts + hudState.ttlMs;
+        const active = now < expiresAt;
+        if (active && p < hudState.priority) return false;
+
+        hudState.text = String(text || 'READY');
+        hudState.ts = now;
+        hudState.priority = p;
+        hudState.ttlMs = ttl;
+        hudState.token += 1;
+        const token = hudState.token;
+
+        renderHud(hudState.text);
+        if (hudTimer) clearTimeout(hudTimer);
+        if (ttl > 0) {
+          hudTimer = setTimeout(() => {
+            if (token !== hudState.token) return;
+            hudState.text = 'READY';
+            hudState.ts = Date.now();
+            hudState.priority = 0;
+            hudState.ttlMs = 0;
+            renderHud('READY');
+          }, ttl);
+        }
+        return true;
+      }
+      window.denarratorHud = { set: hudSet };
+      renderHud('READY');
+
+      function hudPostFromRoot(root, text, priority = 1, ttlMs = 1500) {
+        const payload = { text, priority, ttlMs };
+        if (root === document || root?.defaultView === window) {
+          hudSet(text, priority, ttlMs);
+          return;
+        }
+        try {
+          root?.defaultView?.parent?.postMessage({ type: 'HUD_SET', version: 1, payload }, '*');
+        } catch {
+          // ignore
+        }
+      }
+
+      function hudControlLabel(control) {
+        if (!control) return '';
+        const fromData = control.getAttribute?.('data-hud-label');
+        if (fromData) return String(fromData).trim();
+        const aria = control.getAttribute?.('aria-label');
+        if (aria) return String(aria).trim();
+        const labelEl = control.closest?.('label');
+        if (labelEl) {
+          const explicit = labelEl.querySelector?.('span, strong, b');
+          if (explicit?.textContent) return explicit.textContent.trim();
+          const txt = (labelEl.textContent || '').replace(/\s+/g, ' ').trim();
+          if (txt) return txt;
+        }
+        if (control.id) return String(control.id).replace(/[_-]+/g, ' ').trim();
+        return String(control.name || 'Value').trim();
+      }
+
+      function hudControlValue(control) {
+        if (!control) return '';
+        const tag = String(control.tagName || '').toLowerCase();
+        if (tag === 'select') {
+          const opt = control.options?.[control.selectedIndex];
+          return String(opt?.textContent || control.value || '').trim();
+        }
+        if (control.type === 'checkbox') return control.checked ? 'ON' : 'OFF';
+        if (control.type === 'range') {
+          const n = Number(control.value);
+          if (!Number.isFinite(n)) return String(control.value || '');
+          if (Math.abs(n) >= 100 || Number.isInteger(n)) return `${Math.round(n)}`;
+          return `${n.toFixed(2)}`;
+        }
+        if (tag === 'button' && control.hasAttribute('aria-pressed')) {
+          return control.getAttribute('aria-pressed') === 'true' ? 'ON' : 'OFF';
+        }
+        return String(control.value || '').trim();
+      }
+
+      function hudTextFromControl(control) {
+        const label = hudControlLabel(control);
+        const value = hudControlValue(control);
+        if (!label && !value) return '';
+        if (!label) return value.toUpperCase();
+        if (!value) return label.toUpperCase();
+        return `${label}: ${value}`.toUpperCase();
+      }
+
+      function installHudBridge(root = document) {
+        if (!root || root.__dnHudBridgeInstalled) return;
+        root.__dnHudBridgeInstalled = true;
+        const rateMs = 34;
+        let lastRangeAt = 0;
+        let activeRange = null;
+        const asElement = (node) => (node && node.nodeType === 1 ? node : null);
+
+        const emit = (control, priority, ttlMs, force = false) => {
+          const text = hudTextFromControl(control);
+          if (!text) return;
+          if (!force && control?.type === 'range') {
+            const now = performance.now();
+            if (now - lastRangeAt < rateMs) return;
+            lastRangeAt = now;
+          }
+          hudPostFromRoot(root, text, priority, ttlMs);
+        };
+
+        root.addEventListener('pointerdown', (event) => {
+          const target = asElement(event.target);
+          if (!target) return;
+          const control = target.closest('input[type="range"]');
+          if (!control || control.disabled) return;
+          activeRange = control;
+          emit(control, 3, 180, true);
+        }, { passive: true, capture: true });
+
+        root.addEventListener('input', (event) => {
+          const target = asElement(event.target);
+          if (!target) return;
+          const control = target.closest('input[type="range"]');
+          if (!control || control.disabled) return;
+          activeRange = control;
+          emit(control, 3, 180);
+        }, { passive: true, capture: true });
+
+        root.addEventListener('pointerup', () => {
+          if (!activeRange) return;
+          emit(activeRange, 3, 1500, true);
+          activeRange = null;
+        }, { passive: true, capture: true });
+
+        root.addEventListener('change', (event) => {
+          const target = asElement(event.target);
+          if (!target) return;
+          const control = target.closest('select,input[type="checkbox"]');
+          if (!control || control.disabled) return;
+          emit(control, 3, 1500, true);
+        }, { passive: true, capture: true });
+
+        root.addEventListener('click', (event) => {
+          const target = asElement(event.target);
+          if (!target) return;
+          const control = target.closest('button[aria-pressed],button[data-state]');
+          if (!control || control.disabled) return;
+          emit(control, 3, 1500, true);
+        }, { passive: true, capture: true });
+      }
+
+      function ensureTactileStyle(root) {
+        const doc = root?.ownerDocument || root;
+        if (!doc?.head) return;
+        if (doc.getElementById(TACTILE_STYLE_ID)) return;
+        const style = doc.createElement('style');
+        style.id = TACTILE_STYLE_ID;
+        style.textContent = `
+          select {
+            -webkit-appearance: none !important;
+            appearance: none !important;
+            border-radius: 0 !important;
+            border: 1px solid rgba(47,49,50,0.55) !important;
+            background-color: rgba(255,255,255,0.62) !important;
+            color: #2f3132 !important;
+            padding-right: 24px !important;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%232f3132' stroke-width='1.25' stroke-linecap='square'/%3E%3C/svg%3E") !important;
+            background-repeat: no-repeat !important;
+            background-position: right 8px center !important;
+            background-size: 10px 6px !important;
+          }
+          select option {
+            background: #f4f1ea !important;
+            color: #2f3132 !important;
+          }
+          select::-ms-expand { display: none !important; }
+          html.dn-squish .dn-btn {
+            --press-scale: 0.965;
+            --press-y: 0.35px;
+            --press-rotate: -0.18deg;
+            --press-dur: 34ms;
+            --release-dur: 110ms;
+            --ease-in: cubic-bezier(.2,.9,.22,1);
+            --ease-out-back: cubic-bezier(.16,1.18,.25,1);
+            transition:
+              transform var(--release-dur) var(--ease-out-back),
+              filter var(--release-dur) var(--ease-out-back),
+              opacity 140ms var(--ease-in),
+              background-color 140ms var(--ease-in),
+              color 140ms var(--ease-in),
+              box-shadow var(--release-dur) var(--ease-out-back);
+            filter: brightness(1) saturate(1);
+            box-shadow: 0 0 0 rgba(0,0,0,0), 0 0 0 rgba(255,255,255,0);
+            will-change: transform, filter, opacity, background-color, color, box-shadow;
+          }
+          html.dn-squish .dn-btn.is-pressing {
+            transition:
+              transform var(--press-dur) var(--ease-in),
+              filter var(--press-dur) var(--ease-in),
+              opacity var(--press-dur) var(--ease-in),
+              background-color var(--press-dur) var(--ease-in),
+              color var(--press-dur) var(--ease-in),
+              box-shadow var(--press-dur) var(--ease-in);
+            transform: translateZ(0) translateY(var(--press-y)) rotate(var(--press-rotate)) scale(var(--press-scale));
+            filter: brightness(1.16) saturate(1.45);
+            box-shadow: 0 0 10px rgba(255,255,255,0.2);
+          }
+          html.dn-squish .dn-btn.is-on { filter: brightness(1.15) saturate(1.42); }
+          @media (prefers-reduced-motion: reduce) {
+            html.dn-squish .dn-btn { transition: none !important; transform: none !important; }
+          }
+        `;
+        doc.head.appendChild(style);
+      }
+
+      function installTactileButtons(root = document) {
+        if (tactileInstalledDocs.has(root)) {
+          root.documentElement?.classList?.toggle('dn-squish', squishEnabled);
+          return;
+        }
+        tactileInstalledDocs.add(root);
+        ensureTactileStyle(root);
+        installHudBridge(root);
+        root.documentElement?.classList?.toggle('dn-squish', squishEnabled);
+        const addClass = () => {
+          root.querySelectorAll('button').forEach((button) => button.classList.add('dn-btn'));
+        };
+        addClass();
+        const observer = new MutationObserver(() => addClass());
+        observer.observe(root.documentElement || root.body, { childList: true, subtree: true });
+        const clear = () => {
+          root.querySelectorAll('.dn-btn.is-pressing').forEach((button) => button.classList.remove('is-pressing'));
+        };
+        root.addEventListener('pointerdown', (event) => {
+          const button = event.target?.closest?.('.dn-btn');
+          if (!button || button.disabled) return;
+          button.classList.add('is-pressing');
+          try { button.setPointerCapture(event.pointerId); } catch {}
+        }, { passive: true, capture: true });
+        root.addEventListener('pointerup', (event) => {
+          const button = event.target?.closest?.('.dn-btn');
+          if (button) button.classList.remove('is-pressing');
+          else clear();
+        }, { passive: true, capture: true });
+        root.addEventListener('pointercancel', clear, { passive: true, capture: true });
+        root.addEventListener('blur', clear, true);
+      }
+
+      function applyGlobalTactileToFrames() {
+        for (const frame of frameEls) {
+          try {
+            const doc = frame?.contentDocument;
+            if (!doc || !doc.documentElement) continue;
+            installTactileButtons(doc);
+          } catch {
+            // Ignore cross-origin/unready frames.
+          }
+        }
+      }
+
+      function showMidiToast(text) {
+        if (!midiToast) return;
+        midiToast.textContent = text;
+        midiToast.classList.remove('hidden');
+        midiToast.setAttribute('aria-hidden', 'false');
+        if (midiToastTimer) clearTimeout(midiToastTimer);
+        midiToastTimer = setTimeout(() => {
+          midiToastTimer = null;
+          midiToast.classList.add('hidden');
+          midiToast.setAttribute('aria-hidden', 'true');
+        }, 1800);
+      }
+
+      function mappingTransform(raw01, mapping) {
+        let x = Math.max(0, Math.min(1, Number(raw01) || 0));
+        if (mapping.invert) x = 1 - x;
+        const curve = mapping.curve || 'linear';
+        if (curve === 'exp') x = x * x;
+        if (curve === 'log') x = 1 - ((1 - x) * (1 - x));
+        const min = Math.max(0, Math.min(1, Number(mapping.min) || 0));
+        const max = Math.max(0, Math.min(1, Number(mapping.max) || 1));
+        return Math.max(0, Math.min(1, min + (x * (max - min))));
+      }
+
+      function mappingOwner(targetId) {
+        const id = String(targetId || '');
+        if (id.startsWith('lazy.')) return lazyFrame;
+        if (id.startsWith('i2.')) return i2Frame;
+        if (id.startsWith('prim.')) return primFrame;
+        if (id.startsWith('theremin.')) return thereminFrame;
+        return null;
+      }
+
+      function broadcastMapMode() {
+        broadcastToAllFrames({
+          type: 'MIDI_MAP_MODE',
+          version: 1,
+          payload: {
+            enabled: midiMapMode,
+            armedTargetId: midiArmedTargetId,
+            armedTargetLabel: midiArmedTargetLabel,
+          },
+        });
+      }
+
+      function setMidiArmedTarget(targetId, label) {
+        midiArmedTargetId = targetId || null;
+        midiArmedTargetLabel = label || targetId || null;
+        updateMidiUi();
+        broadcastMapMode();
+      }
+
+      function clearMidiArmedTarget() {
+        setMidiArmedTarget(null, null);
+      }
+
+      function upsertMidiMapping(newMapping) {
+        const existingIndex = midiMappings.findIndex((m) => m.targetId === newMapping.targetId);
+        if (existingIndex >= 0) {
+          const prior = midiMappings[existingIndex];
+          midiMappings[existingIndex] = {
+            ...prior,
+            ...newMapping,
+            id: prior.id,
+            min: Number.isFinite(prior.min) ? prior.min : 0,
+            max: Number.isFinite(prior.max) ? prior.max : 1,
+            curve: prior.curve || 'linear',
+            invert: Boolean(prior.invert),
+            smoothMs: Number.isFinite(prior.smoothMs) ? prior.smoothMs : 20,
+            takeover: prior.takeover || 'pickup',
+            runtime: {
+              out01: Number.isFinite(prior?.runtime?.out01) ? prior.runtime.out01 : 0,
+              lastTsMs: Number.isFinite(prior?.runtime?.lastTsMs) ? prior.runtime.lastTsMs : 0,
+              pickupArmed: true,
+            },
+          };
+          return midiMappings[existingIndex];
+        }
+        if (midiMappings.length >= MIDI_MAP_LIMIT) {
+          showMidiToast('Mapping limit reached (16).');
+          return null;
+        }
+        const next = {
+          id: `map_${midiMapSeq++}`,
+          targetId: newMapping.targetId,
+          binding: { ...newMapping.binding },
+          min: 0,
+          max: 1,
+          curve: 'linear',
+          invert: false,
+          smoothMs: 20,
+          takeover: 'pickup',
+          runtime: { out01: 0, lastTsMs: 0, pickupArmed: true },
+        };
+        midiMappings.push(next);
+        setHostDirty(true);
+        return next;
+      }
+
+      function stripMappingRuntime(mapping) {
+        const { runtime, ...persisted } = mapping;
+        return persisted;
+      }
+
+      function applyMidiMappingsFromPayload(payloadMappings) {
+        midiMappings.splice(0, midiMappings.length);
+        const src = Array.isArray(payloadMappings) ? payloadMappings : [];
+        for (const item of src.slice(0, MIDI_MAP_LIMIT)) {
+          if (!item?.targetId || !item?.binding?.type || item.binding.type !== 'cc') continue;
+          midiMappings.push({
+            id: String(item.id || `map_${midiMapSeq++}`),
+            targetId: String(item.targetId),
+            binding: {
+              type: 'cc',
+              deviceId: String(item.binding.deviceId || ''),
+              channel: Math.max(0, Math.min(15, Number(item.binding.channel) || 0)),
+              cc: Math.max(0, Math.min(127, Number(item.binding.cc) || 0)),
+            },
+            min: Math.max(0, Math.min(1, Number(item.min) || 0)),
+            max: Math.max(0, Math.min(1, Number(item.max) || 1)),
+            curve: ['linear', 'exp', 'log'].includes(item.curve) ? item.curve : 'linear',
+            invert: Boolean(item.invert),
+            smoothMs: Math.max(0, Number(item.smoothMs) || 20),
+            takeover: item.takeover === 'immediate' ? 'immediate' : 'pickup',
+            runtime: { out01: 0, lastTsMs: 0, pickupArmed: true },
+          });
+        }
+        setHostDirty(false);
+      }
+
+      function dispatchMidiTarget(targetId, value01) {
+        const frame = mappingOwner(targetId);
+        if (!frame) return;
+        postToFrame(frame, {
+          type: 'MIDI_TARGET_SET',
+          version: 1,
+          payload: {
+            targetId,
+            value01: Math.max(0, Math.min(1, Number(value01) || 0)),
+          },
+        });
+      }
+
+      function processMidiCc(message) {
+        const deviceId = String(message?.deviceId || message?.device_id || '');
+        const channel = Math.max(0, Math.min(15, Number(message?.channel) || 0));
+        const cc = Math.max(0, Math.min(127, Number(message?.cc) || 0));
+        const value = Math.max(0, Math.min(127, Number(message?.value) || 0));
+        const tsMs = Number(message?.tsMs || message?.ts_ms) || Date.now();
+        const raw01 = value / 127;
+
+        if (midiMapMode && midiArmedTargetId) {
+          const mapped = upsertMidiMapping({
+            targetId: midiArmedTargetId,
+            binding: { type: 'cc', deviceId, channel, cc },
+          });
+          if (mapped) {
+            showMidiToast(`Mapped ${midiArmedTargetLabel || midiArmedTargetId}`);
+          }
+          clearMidiArmedTarget();
+          updateMidiUi();
+          return;
+        }
+
+        for (const mapping of midiMappings) {
+          const b = mapping.binding || {};
+          if (b.type !== 'cc') continue;
+          if (String(b.deviceId) !== deviceId) continue;
+          if (Number(b.channel) !== channel) continue;
+          if (Number(b.cc) !== cc) continue;
+
+          if (mapping.takeover === 'pickup' && mapping.runtime.pickupArmed) {
+            const lastOut01 = Number.isFinite(mapping.runtime.out01) ? mapping.runtime.out01 : 0;
+            if (Math.abs(raw01 - lastOut01) < 0.03) {
+              mapping.runtime.pickupArmed = false;
+            } else {
+              continue;
+            }
+          }
+
+          const target01 = mappingTransform(raw01, mapping);
+          const dt = mapping.runtime.lastTsMs > 0 ? Math.max(1, tsMs - mapping.runtime.lastTsMs) : 16;
+          const smoothMs = Math.max(0, Number(mapping.smoothMs) || 0);
+          const alpha = smoothMs <= 0 ? 1 : (dt / (smoothMs + dt));
+          const prev = Number.isFinite(mapping.runtime.out01) ? mapping.runtime.out01 : target01;
+          const out = prev + alpha * (target01 - prev);
+          mapping.runtime.out01 = out;
+          mapping.runtime.lastTsMs = tsMs;
+          dispatchMidiTarget(mapping.targetId, out);
+        }
+      }
+
+      function updateMidiUi() {
+        if (!midiBtn || !midiPanel || !midiMapToggleBtn || !midiMapList || !midiStatus) return;
+        midiBtn.setAttribute('aria-pressed', String(midiPanelOpen));
+        midiPanel.classList.toggle('hidden', !midiPanelOpen);
+        midiPanel.setAttribute('aria-hidden', String(!midiPanelOpen));
+        midiMapToggleBtn.setAttribute('aria-pressed', String(midiMapMode));
+        midiMapToggleBtn.textContent = midiMapMode ? 'MAP ON' : 'MAP OFF';
+        if (midiArmedTargetId) {
+          midiStatus.textContent = `ARMED: ${midiArmedTargetLabel || midiArmedTargetId}. Move a CC now.`;
+        } else if (midiMapMode) {
+          midiStatus.textContent = 'MAP ON: Click control in module, then move a CC.';
+        } else {
+          midiStatus.textContent = `Mappings: ${midiMappings.length}/16`;
+        }
+
+        midiDeviceSelect.innerHTML = '';
+        if (!midiDevices.length) {
+          const opt = document.createElement('option');
+          opt.value = '';
+          opt.textContent = 'No MIDI input';
+          midiDeviceSelect.appendChild(opt);
+        } else {
+          for (const dev of midiDevices) {
+            const opt = document.createElement('option');
+            opt.value = dev.id;
+            opt.textContent = dev.name;
+            if (dev.id === midiActiveDeviceId) opt.selected = true;
+            midiDeviceSelect.appendChild(opt);
+          }
+        }
+
+        midiMapList.innerHTML = '';
+        if (!midiMappings.length) {
+          const empty = document.createElement('div');
+          empty.textContent = 'No mappings.';
+          empty.className = 'midi-status';
+          midiMapList.appendChild(empty);
+          return;
+        }
+        for (const mapping of midiMappings) {
+          const row = document.createElement('div');
+          row.className = 'midi-item';
+          const left = document.createElement('span');
+          left.textContent = `${mapping.targetId} <= CC ${mapping.binding.cc} CH ${mapping.binding.channel + 1}`;
+          const mode = document.createElement('button');
+          mode.type = 'button';
+          mode.textContent = mapping.takeover === 'pickup' ? 'PICKUP' : 'IMMEDIATE';
+          mode.addEventListener('click', () => {
+            mapping.takeover = mapping.takeover === 'pickup' ? 'immediate' : 'pickup';
+            mapping.runtime.pickupArmed = mapping.takeover === 'pickup';
+            updateMidiUi();
+          });
+          const del = document.createElement('button');
+          del.type = 'button';
+          del.textContent = 'DEL';
+          del.addEventListener('click', () => {
+            const idx = midiMappings.findIndex((m) => m.id === mapping.id);
+            if (idx >= 0) midiMappings.splice(idx, 1);
+            setHostDirty(true);
+            updateMidiUi();
+          });
+          row.appendChild(left);
+          row.appendChild(mode);
+          row.appendChild(del);
+          midiMapList.appendChild(row);
+        }
+      }
+
+      async function refreshMidiDevices() {
+        const invoke = getInvoke();
+        if (!invoke) {
+          midiDevices = [];
+          midiActiveDeviceId = '';
+          updateMidiUi();
+          return;
+        }
+        try {
+          const devices = await invoke('midi_list_inputs');
+          midiDevices = Array.isArray(devices) ? devices.map((d) => ({
+            id: String(d.id ?? ''),
+            name: String(d.name ?? 'MIDI Input'),
+          })) : [];
+          if (!midiDevices.some((d) => d.id === midiActiveDeviceId)) {
+            midiActiveDeviceId = midiDevices[0]?.id || '';
+          }
+        } catch {
+          midiDevices = [];
+          midiActiveDeviceId = '';
+        }
+        updateMidiUi();
+      }
+
+      async function connectMidiDevice() {
+        const invoke = getInvoke();
+        if (!invoke) return;
+        const deviceId = String(midiDeviceSelect?.value || '');
+        if (!deviceId) {
+          showMidiToast('No MIDI device selected');
+          return;
+        }
+        try {
+          await invoke('midi_open_input', { deviceId });
+          midiActiveDeviceId = deviceId;
+          showMidiToast('MIDI connected');
+          updateMidiUi();
+        } catch {
+          showMidiToast('MIDI connect failed');
+        }
+      }
+
+      async function disconnectMidiDevice() {
+        const invoke = getInvoke();
+        if (!invoke) return;
+        try {
+          await invoke('midi_close_input');
+          showMidiToast('MIDI disconnected');
+        } catch {
+          showMidiToast('MIDI disconnect failed');
+        }
+      }
+
+      async function saveMidiSesh() {
+        const payload = await buildGlobalSessionPayload({ includeOnlyDirty: true });
+        const invoke = getInvoke();
+        if (!invoke) return;
+        const stamp = new Date().toISOString().replace(/[:.]/g, '-');
+        try {
+          const savePath = await saveFileDialogWithDefaults({
+            kind: 'sesh_save',
+            suggestedName: `denarrator-${stamp}.sesh`,
+            filters: [{ name: 'SESH', extensions: ['sesh', 'json'] }],
+          });
+          if (!savePath) return;
+          const textBytes = new TextEncoder().encode(JSON.stringify(payload, null, 2));
+          const dataBase64 = arrayBufferToBase64(textBytes.buffer);
+          await invoke('save_blob_to_path', { dataBase64, path: savePath });
+          clearDirtyAll();
+          broadcastToAllFrames({
+            type: 'SESSION_SAVED',
+            version: 1,
+            payload: { savedAt: new Date().toISOString() },
+          });
+          showMidiToast('.sesh saved');
+        } catch {
+          showMidiToast('.sesh save failed');
+        }
+      }
+
+      async function loadMidiSeshFromDialog() {
+        const invoke = getInvoke();
+        if (!invoke) return;
+        try {
+          const path = await openFileDialogWithDefaults({
+            kind: 'sesh_load',
+            filters: [{ name: 'SESH', extensions: ['sesh', 'json'] }],
+          });
+          if (!path) return;
+          const text = await invoke('browser_read_text', { path: String(path) });
+          const parsed = JSON.parse(String(text || '{}'));
+          await applyGlobalSessionPayload(parsed);
+          clearDirtyAll();
+          showMidiToast('.sesh loaded');
+        } catch {
+          showMidiToast('Invalid .sesh');
+        }
+      }
+
+      function getFrameByModuleId(moduleId) {
+        const id = String(moduleId || '').toLowerCase();
+        if (id === 'lazy') return lazyFrame;
+        if (id === 'prim') return primFrame;
+        if (id === 'i2') return i2Frame;
+        if (id === 'morphogo') return morphFrame;
+        if (id === 'mirror') return mirrorFrame;
+        if (id === 'algebra') return algebraFrame;
+        if (id === 'negativraum') return negFrame;
+        if (id === 'rcf' || id === 'rcf_rzb') return rcfFrame;
+        if (id === 'testmodule' || id === 'centrifuge' || id === 'fibomatix') return testmoduleFrame;
+        if (id === 'theremin') return thereminFrame;
+        if (id === 'particles') return particlesFrame;
+        if (id === 'pictonal') return pictonalFrame;
+        if (id === 'izer' || id === '=izer' || id === 'eq') return izerFrame;
+        if (id === 'projektor') return projektorFrame;
+        if (id === 'nuklear') return nuklearFrame;
+        return null;
+      }
+
+      function paneIdToModuleId(paneId) {
+        const id = String(paneId || '').toLowerCase();
+        if (id === 'lazy-pane') return 'lazy';
+        if (id === 'prim-pane') return 'prim';
+        if (id === 'i2-pane') return 'i2';
+        if (id === 'morphogo-pane') return 'morphogo';
+        if (id === 'mirror-pane') return 'mirror';
+        if (id === 'algebra-pane') return 'algebra';
+        if (id === 'rcf-pane') return 'rcf_rzb';
+        if (id === 'testmodule-pane') return 'testmodule';
+        if (id === 'theremin-pane') return 'theremin';
+        if (id === 'particles-pane') return 'particles';
+        if (id === 'pictonal-pane') return 'pictonal';
+        if (id === 'izer-pane') return 'izer';
+        if (id === 'projektor-pane') return 'projektor';
+        if (id === 'nuklear-pane') return 'nuklear';
+        if (id === 'negativraum-pane') return 'negativraum';
+        return 'lazy';
+      }
+
+      function setHostDirty(next) {
+        hostDirty = Boolean(next);
+      }
+
+      function setModuleDirty(moduleId, dirty) {
+        const id = String(moduleId || '').toLowerCase();
+        if (!id) return;
+        moduleDirtyState[id] = Boolean(dirty);
+      }
+
+      function isAnyDirty() {
+        if (hostDirty) return true;
+        return Object.values(moduleDirtyState).some(Boolean);
+      }
+
+      function clearDirtyAll() {
+        hostDirty = false;
+        for (const key of Object.keys(moduleDirtyState)) {
+          moduleDirtyState[key] = false;
+        }
+      }
+
+      function setResetArmed(next) {
+        resetArmed = Boolean(next);
+        if (moduleResetBtn) {
+          moduleResetBtn.setAttribute('aria-pressed', String(resetArmed));
+          moduleResetBtn.textContent = resetArmed ? 'SURE?' : 'RESET';
+        }
+      }
+
+      function disarmReset() {
+        if (resetArmTimer) {
+          clearTimeout(resetArmTimer);
+          resetArmTimer = null;
+        }
+        setResetArmed(false);
+      }
+
+      function armReset() {
+        disarmReset();
+        setResetArmed(true);
+        resetArmTimer = setTimeout(() => {
+          resetArmTimer = null;
+          setResetArmed(false);
+        }, 1500);
+      }
+
+      function triggerActiveModuleReset() {
+        const frame = getActiveFrame();
+        const moduleId = paneIdToModuleId(activePaneId);
+        if (!frame?.contentWindow) return;
+        postToFrame(frame, {
+          type: 'MODULE_RESET_REQUEST',
+          version: 1,
+          payload: { moduleId },
+        });
+        // Fallback reset path for modules that do not implement reset yet.
+        setTimeout(() => {
+          try {
+            frame.contentWindow.location.reload();
+          } catch {}
+        }, 220);
+        setHostDirty(true);
+      }
+
+      function setQuitModalOpen(open) {
+        const isOpen = Boolean(open);
+        quitModalBackdrop?.classList.toggle('hidden', !isOpen);
+        quitModalBackdrop?.setAttribute('aria-hidden', String(!isOpen));
+        if (!isOpen) {
+          quitModalStep1?.classList.remove('hidden');
+          quitModalStep2?.classList.add('hidden');
+        }
+      }
+
+      async function suggestSessionTitle() {
+        const invoke = getInvoke();
+        if (!invoke) return 'DENARRATOR_0001';
+        try {
+          const result = await invoke('session_suggest_next_title', { prefix: 'DENARRATOR' });
+          return String(result?.title || 'DENARRATOR_0001');
+        } catch {
+          return 'DENARRATOR_0001';
+        }
+      }
+
+      async function resolveSessionTitlePath(titleRaw) {
+        const invoke = getInvoke();
+        if (!invoke) return null;
+        try {
+          return await invoke('session_resolve_title_path', { title: String(titleRaw || '') });
+        } catch {
+          return null;
+        }
+      }
+
+      async function saveSessionByTitle(titleRaw) {
+        const invoke = getInvoke();
+        if (!invoke) return false;
+        const payload = await buildGlobalSessionPayload({ includeOnlyDirty: false });
+        const target = await resolveSessionTitlePath(titleRaw);
+        const path = String(target?.path || '');
+        if (!path) return false;
+        const bytes = new TextEncoder().encode(JSON.stringify(payload, null, 2));
+        const dataBase64 = arrayBufferToBase64(bytes.buffer);
+        try {
+          const ok = await invoke('save_blob_to_path', { dataBase64, path });
+          if (!ok) return false;
+          clearDirtyAll();
+          broadcastToAllFrames({
+            type: 'SESSION_SAVED',
+            version: 1,
+            payload: { savedAt: new Date().toISOString(), path, title: String(target?.title || titleRaw || '') },
+          });
+          return true;
+        } catch {
+          return false;
+        }
+      }
+
+      async function collectDirtyFromModules() {
+        sessionExportCollector = { chunks: {}, dirtyByModule: {} };
+        broadcastToAllFrames({
+          type: 'SESSION_EXPORT_REQ',
+          version: 1,
+          payload: { includeOnlyDirty: false },
+        });
+        await new Promise((resolve) => setTimeout(resolve, 650));
+        const dirtyMap = sessionExportCollector?.dirtyByModule || {};
+        for (const [moduleId, dirty] of Object.entries(dirtyMap)) {
+          setModuleDirty(moduleId, Boolean(dirty));
+        }
+        sessionExportCollector = null;
+      }
+
+      async function requestQuitFlow() {
+        const invoke = getInvoke();
+        if (!invoke) return;
+        await collectDirtyFromModules();
+        if (!isAnyDirty()) {
+          await invoke('app_quit');
+          return;
+        }
+        setQuitModalOpen(true);
+      }
+
+      function getBrowserCaps(moduleId) {
+        const id = String(moduleId || '').toLowerCase();
+        if (browserCapsRegistry.has(id)) return browserCapsRegistry.get(id);
+        const fallback = browserDefaultsCaps.find((c) => c.moduleId === id);
+        return fallback || null;
+      }
+
+      function browserPersistUi() {
+        try {
+          localStorage.setItem('denarrator.browser.tab', browserState.tab);
+          localStorage.setItem('denarrator.browser.sort', browserState.sort);
+          localStorage.setItem('denarrator.browser.query', browserState.query);
+        } catch {}
+      }
+
+      function browserRestoreUi() {
+        try {
+          const tab = String(localStorage.getItem('denarrator.browser.tab') || 'CLIPS').toUpperCase();
+          if (tab === 'CLIPS' || tab === 'SESH' || tab === 'PRESETS') browserState.tab = tab;
+          const sort = String(localStorage.getItem('denarrator.browser.sort') || 'NEW').toUpperCase();
+          if (sort === 'NEW' || sort === 'NAME' || sort === 'TYPE') browserState.sort = sort;
+          browserState.query = String(localStorage.getItem('denarrator.browser.query') || '');
+        } catch {}
+      }
+
+      function browserSetStatus(text) {
+        if (browserStatus) browserStatus.textContent = text;
+      }
+
+      function browserHumanTime(ms) {
+        if (!Number.isFinite(ms) || ms <= 0) return '-';
+        try { return new Date(ms).toLocaleString(); } catch { return '-'; }
+      }
+
+      function browserHumanSize(bytes) {
+        const b = Number(bytes) || 0;
+        if (b < 1024) return `${b} B`;
+        if (b < 1024 * 1024) return `${(b / 1024).toFixed(1)} KB`;
+        return `${(b / (1024 * 1024)).toFixed(1)} MB`;
+      }
+
+      function browserSortItems(items, getType = () => '') {
+        const mode = browserState.sort;
+        if (mode === 'NAME') {
+          return [...items].sort((a, b) => String(a?.name || '').localeCompare(String(b?.name || ''), undefined, { sensitivity: 'base' }));
+        }
+        if (mode === 'TYPE') {
+          return [...items].sort((a, b) => {
+            const ta = String(getType(a) || '');
+            const tb = String(getType(b) || '');
+            if (ta !== tb) return ta.localeCompare(tb);
+            return String(a?.name || '').localeCompare(String(b?.name || ''), undefined, { sensitivity: 'base' });
+          });
+        }
+        return [...items].sort((a, b) => Number(b?.mtime_ms || 0) - Number(a?.mtime_ms || 0));
+      }
+
+      function browserFilteredItems() {
+        const q = browserState.query.trim().toLowerCase();
+        const list = browserState.tab === 'SESH'
+          ? browserState.sessions
+          : browserState.tab === 'PRESETS'
+            ? browserState.presets
+            : browserState.clips;
+        const filtered = q
+          ? list.filter((item) => JSON.stringify(item).toLowerCase().includes(q))
+          : list.slice();
+        const typeGetter = (item) => browserState.tab === 'PRESETS'
+          ? String(item?.module || item?.kind || '')
+          : String(item?.kind || '');
+        return browserSortItems(filtered, typeGetter);
+      }
+
+      async function browserFetchIndex() {
+        const invoke = getInvoke();
+        if (!invoke) {
+          browserSetStatus('Browser unavailable (no native bridge).');
+          return;
+        }
+        browserSetStatus('Loading index...');
+        try {
+          const index = await invoke('browser_index');
+          browserState.clips = Array.isArray(index?.clips) ? index.clips : [];
+          browserState.sessions = Array.isArray(index?.sessions) ? index.sessions : [];
+          browserState.presets = Array.isArray(index?.presets) ? index.presets : [];
+          browserRenderList();
+          browserSetStatus(`Indexed ${browserState.clips.length} clips, ${browserState.sessions.length} sessions, ${browserState.presets.length} presets.`);
+        } catch (error) {
+          browserSetStatus(`Index failed: ${String(error?.message || error)}`);
+        }
+      }
+
+      function decodeBase64ToUint8(base64) {
+        const bin = atob(String(base64 || ''));
+        const out = new Uint8Array(bin.length);
+        for (let i = 0; i < bin.length; i += 1) out[i] = bin.charCodeAt(i);
+        return out;
+      }
+
+      function wavPeaksFromPcm16(bytes, columns = 120) {
+        if (!bytes || bytes.length < 44) return null;
+        const dv = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+        if (dv.getUint32(0, false) !== 0x52494646 || dv.getUint32(8, false) !== 0x57415645) return null;
+        let offset = 12;
+        let dataOffset = -1;
+        let dataSize = 0;
+        let channels = 1;
+        let bitsPerSample = 16;
+        while (offset + 8 <= bytes.length) {
+          const chunkId = dv.getUint32(offset, false);
+          const chunkSize = dv.getUint32(offset + 4, true);
+          const next = offset + 8 + chunkSize + (chunkSize % 2);
+          if (chunkId === 0x666d7420 && offset + 24 <= bytes.length) {
+            channels = Math.max(1, dv.getUint16(offset + 10, true));
+            bitsPerSample = Math.max(8, dv.getUint16(offset + 22, true));
+          } else if (chunkId === 0x64617461) {
+            dataOffset = offset + 8;
+            dataSize = Math.min(chunkSize, bytes.length - dataOffset);
+            break;
+          }
+          offset = next;
+        }
+        if (dataOffset < 0 || dataSize <= 0) return null;
+        if (bitsPerSample !== 16 && bitsPerSample !== 32) return null;
+        const bytesPerSample = bitsPerSample / 8;
+        const frameCount = Math.max(1, Math.floor(dataSize / (bytesPerSample * channels)));
+        const stride = Math.max(1, Math.floor(frameCount / columns));
+        const mins = new Float32Array(columns);
+        const maxs = new Float32Array(columns);
+        for (let i = 0; i < columns; i += 1) {
+          let mn = 1;
+          let mx = -1;
+          const startFrame = Math.min(frameCount - 1, i * stride);
+          const endFrame = Math.min(frameCount, startFrame + stride);
+          for (let f = startFrame; f < endFrame; f += 1) {
+            const sampleOffset = dataOffset + (f * channels * bytesPerSample);
+            const v = bitsPerSample === 16
+              ? dv.getInt16(sampleOffset, true) / 32768
+              : Math.max(-1, Math.min(1, dv.getFloat32(sampleOffset, true)));
+            mn = Math.min(mn, v);
+            mx = Math.max(mx, v);
+          }
+          mins[i] = Number.isFinite(mn) ? mn : 0;
+          maxs[i] = Number.isFinite(mx) ? mx : 0;
+        }
+        return { mins, maxs };
+      }
+
+      async function browserGetPeaks(path) {
+        const key = String(path || '');
+        if (!key) return null;
+        if (browserWaveCache.has(key)) return browserWaveCache.get(key);
+        if (browserDecodeCache.has(key)) return browserDecodeCache.get(key);
+        const invoke = getInvoke();
+        if (!invoke) return null;
+        const p = (async () => {
+          try {
+            let peaks = null;
+            try {
+              const nativePeaks = await invoke('browser_wave_peaks', { path: key, columns: 120 });
+              if (nativePeaks && Array.isArray(nativePeaks.mins) && Array.isArray(nativePeaks.maxs)) {
+                peaks = {
+                  mins: Float32Array.from(nativePeaks.mins.map((v) => Number(v) || 0)),
+                  maxs: Float32Array.from(nativePeaks.maxs.map((v) => Number(v) || 0)),
+                };
+              }
+            } catch {
+              // fallback below
+            }
+            if (!peaks) {
+              const b64 = await invoke('cliplib_read_wav_base64', { path: key });
+              const bytes = decodeBase64ToUint8(String(b64 || ''));
+              peaks = wavPeaksFromPcm16(bytes, 120);
+            }
+            if (peaks) browserWaveCache.set(key, peaks);
+            return peaks;
+          } catch {
+            return null;
+          } finally {
+            browserDecodeCache.delete(key);
+          }
+        })();
+        browserDecodeCache.set(key, p);
+        return p;
+      }
+
+      function browserDrawPeaks(canvas, peaks, playing = false) {
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+        const ratio = window.devicePixelRatio || 1;
+        const width = Math.max(1, Math.floor(canvas.clientWidth * ratio));
+        const height = Math.max(1, Math.floor(canvas.clientHeight * ratio));
+        if (canvas.width !== width || canvas.height !== height) {
+          canvas.width = width;
+          canvas.height = height;
+        }
+        ctx.clearRect(0, 0, width, height);
+        ctx.fillStyle = 'rgba(252,250,246,0.94)';
+        ctx.fillRect(0, 0, width, height);
+        const mid = Math.round(height * 0.5);
+        ctx.strokeStyle = 'rgba(42,43,45,0.24)';
+        ctx.beginPath();
+        ctx.moveTo(0, mid + 0.5);
+        ctx.lineTo(width, mid + 0.5);
+        ctx.stroke();
+        if (peaks?.mins && peaks?.maxs) {
+          ctx.strokeStyle = 'rgba(42,43,45,0.88)';
+          for (let i = 0; i < peaks.mins.length; i += 1) {
+            const x = Math.round((i / Math.max(1, peaks.mins.length - 1)) * (width - 1));
+            const y1 = Math.round(mid + (peaks.mins[i] * mid));
+            const y2 = Math.round(mid + (peaks.maxs[i] * mid));
+            ctx.beginPath();
+            ctx.moveTo(x + 0.5, y1 + 0.5);
+            ctx.lineTo(x + 0.5, y2 + 0.5);
+            ctx.stroke();
+          }
+        }
+        if (playing) {
+          ctx.strokeStyle = 'rgba(166,58,41,0.95)';
+          ctx.lineWidth = Math.max(1, Math.round(ratio));
+          const phase = (Date.now() % 1400) / 1400;
+          const x = Math.round(phase * (width - 1));
+          ctx.beginPath();
+          ctx.moveTo(x + 0.5, 0);
+          ctx.lineTo(x + 0.5, height);
+          ctx.stroke();
+        }
+      }
+
+      async function browserEnsureAudioContext() {
+        if (browserAudioContext) return browserAudioContext;
+        const Ctor = window.AudioContext || window.webkitAudioContext;
+        if (!Ctor) return null;
+        browserAudioContext = new Ctor({ latencyHint: 'interactive' });
+        return browserAudioContext;
+      }
+
+      function browserStopAudition() {
+        try { browserAuditionNode?.stop(); } catch {}
+        try { browserAuditionNode?.disconnect(); } catch {}
+        browserAuditionNode = null;
+        browserState.auditionPath = '';
+      }
+
+      async function browserPlayClip(item) {
+        const path = String(item?.path || '');
+        if (!path) return;
+        const ctx = await browserEnsureAudioContext();
+        if (!ctx) return;
+        if (browserState.auditionPath && browserState.auditionPath === path) {
+          browserStopAudition();
+          browserRenderList();
+          return;
+        }
+        const invoke = getInvoke();
+        if (!invoke) return;
+        browserSetStatus(`Audition: ${String(item?.name || 'clip')}`);
+        browserStopAudition();
+        try {
+          const b64 = await invoke('cliplib_read_wav_base64', { path });
+          const bytes = decodeBase64ToUint8(String(b64 || ''));
+          const decoded = await ctx.decodeAudioData(bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength));
+          const src = ctx.createBufferSource();
+          src.buffer = decoded;
+          src.connect(ctx.destination);
+          src.onended = () => {
+            if (browserAuditionNode === src) {
+              browserAuditionNode = null;
+              browserState.auditionPath = '';
+              browserRenderList();
+            }
+          };
+          src.start();
+          browserAuditionNode = src;
+          browserState.auditionPath = path;
+        } catch (error) {
+          browserSetStatus(`Audition failed: ${String(error?.message || error)}`);
+        }
+        browserRenderList();
+      }
+
+      async function browserLoadSession(path) {
+        const invoke = getInvoke();
+        if (!invoke) return;
+        try {
+          const text = await invoke('browser_read_text', { path: String(path || '') });
+          const parsed = JSON.parse(String(text || '{}'));
+          await applyGlobalSessionPayload(parsed);
+          browserSetStatus(`Session loaded: ${String(path || '')}`);
+        } catch (error) {
+          browserSetStatus(`Session load failed: ${String(error?.message || error)}`);
+        }
+      }
+
+      async function browserApplyPreset(item) {
+        const moduleId = String(item?.module || '');
+        const frame = getFrameByModuleId(moduleId);
+        if (!frame) {
+          browserSetStatus(`No module frame for preset: ${moduleId}`);
+          return;
+        }
+        let presetId = '';
+        const invoke = getInvoke();
+        if (invoke && item?.path) {
+          try {
+            const text = await invoke('browser_read_text', { path: String(item.path) });
+            const parsed = JSON.parse(String(text || '{}'));
+            if (typeof parsed?.id === 'string' && parsed.id) {
+              presetId = parsed.id;
+            } else if (Array.isArray(parsed?.presets) && parsed.presets.length) {
+              const firstWithId = parsed.presets.find((p) => typeof p?.id === 'string' && p.id);
+              if (firstWithId) presetId = String(firstWithId.id);
+            }
+          } catch {
+            // Keep empty presetId, module may still apply by path.
+          }
+        }
+        postToFrame(frame, {
+          type: 'BROWSER_APPLY_PRESET',
+          version: 1,
+          payload: {
+            path: String(item?.path || ''),
+            presetId,
+          },
+        });
+        browserSetStatus(`Preset sent: ${String(item?.name || 'preset')} -> ${moduleId}${presetId ? ` (${presetId})` : ''}`);
+      }
+
+      function browserCloseChooser(value = null) {
+        if (browserChooserResolver) {
+          const resolve = browserChooserResolver;
+          browserChooserResolver = null;
+          resolve(value);
+        }
+        browserChooser?.classList.add('hidden');
+        browserChooser?.setAttribute('aria-hidden', 'true');
+        if (browserChooserActions) browserChooserActions.innerHTML = '';
+      }
+
+      async function browserOpenChooser({ moduleId, itemType, targets }) {
+        if (!browserChooser || !browserChooserActions || !Array.isArray(targets) || !targets.length) {
+          return null;
+        }
+        browserChooserTitle.innerHTML = `<strong>LOAD AS</strong>`;
+        browserChooserSub.textContent = `${String(moduleId || 'module').toUpperCase()} • ${String(itemType || '').toUpperCase()}`;
+        browserChooserActions.innerHTML = '';
+        browserChooser.classList.remove('hidden');
+        browserChooser.setAttribute('aria-hidden', 'false');
+        const selection = await new Promise((resolve) => {
+          browserChooserResolver = resolve;
+          for (const target of targets) {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.textContent = String(target?.label || target?.id || 'TARGET');
+            btn.addEventListener('click', () => {
+              browserCloseChooser(String(target?.id || ''));
+            });
+            browserChooserActions.appendChild(btn);
+          }
+        });
+        return selection;
+      }
+
+      async function browserChooseTarget(moduleId, itemType) {
+        const caps = getBrowserCaps(moduleId);
+        if (!caps) return null;
+        const targets = (Array.isArray(caps.loadTargets) ? caps.loadTargets : []).filter((t) => String(t?.kind || '') === itemType);
+        if (!targets.length) return null;
+        if (targets.length === 1) return targets[0].id;
+        const remembered = browserState.lastTargetByModule[moduleId];
+        if (remembered && targets.some((t) => t.id === remembered)) return remembered;
+        const defaultId = caps?.defaults?.[`${itemType}Target`];
+        if (defaultId && targets.some((t) => t.id === defaultId)) return defaultId;
+        const chosen = await browserOpenChooser({ moduleId, itemType, targets });
+        const fallback = targets[0]?.id || null;
+        const picked = targets.some((t) => t.id === chosen) ? chosen : fallback;
+        browserState.lastTargetByModule[moduleId] = picked;
+        return picked;
+      }
+
+      async function browserLoadClipToActiveModule(item) {
+        const moduleId = paneIdToModuleId(activePaneId);
+        const frame = getFrameByModuleId(moduleId);
+        if (!frame) return;
+        const targetId = await browserChooseTarget(moduleId, 'audio');
+        if (!targetId) {
+          browserSetStatus(`Active module does not accept audio: ${moduleId}`);
+          return;
+        }
+        postToFrame(frame, {
+          type: 'BROWSER_LOAD_ITEM',
+          version: 1,
+          payload: {
+            itemType: 'audio',
+            clipId: String(item?.clip_id || ''),
+            path: String(item?.path || ''),
+            name: String(item?.name || ''),
+            targetId,
+          },
+        });
+        const invoke = getInvoke();
+        if (!invoke) return;
+        try {
+          const wavBytesBase64 = await invoke('cliplib_read_wav_base64', { path: String(item?.path || '') });
+          let mappedTarget = targetId;
+          if (moduleId === 'negativraum') {
+            mappedTarget = targetId === 'REF' ? 'external' : 'input';
+          } else if (moduleId === 'i2' || moduleId === 'prim' || moduleId === 'theremin') {
+            mappedTarget = 'slot_1';
+          }
+          postToFrame(frame, {
+            type: 'DENARRATOR_IMPORT_CLIP',
+            version: 1,
+            targetSlot: mappedTarget,
+            name: String(item?.name || 'clip.wav'),
+            wavBytesBase64,
+            meta: null,
+          });
+          browserSetStatus(`Loaded: ${String(item?.name || 'clip')} -> ${moduleId}:${targetId}`);
+        } catch (error) {
+          browserSetStatus(`Load failed: ${String(error?.message || error)}`);
+        }
+      }
+
+      async function browserSendToLazy(item) {
+        postToFrame(lazyFrame, {
+          type: 'CLIPLIB_UPDATED',
+          version: 1,
+          clipId: String(item?.clip_id || ''),
+          path: String(item?.path || ''),
+          name: String(item?.name || ''),
+          source: 'browser',
+        });
+        postToFrame(lazyFrame, {
+          type: 'BROWSER_LOAD_ITEM',
+          version: 1,
+          payload: {
+            itemType: 'audio',
+            clipId: String(item?.clip_id || ''),
+            path: String(item?.path || ''),
+            name: String(item?.name || ''),
+            targetId: 'CLIPLIB',
+          },
+        });
+        browserSetStatus(`Sent to Lazy: ${String(item?.name || 'clip')}`);
+      }
+
+      async function browserReveal(path) {
+        const invoke = getInvoke();
+        if (!invoke) return;
+        try {
+          await invoke('browser_reveal', { path: String(path || '') });
+        } catch (error) {
+          browserSetStatus(`Reveal failed: ${String(error?.message || error)}`);
+        }
+      }
+
+      async function browserRename(item) {
+        const invoke = getInvoke();
+        if (!invoke) return;
+        const current = String(item?.name || '');
+        const nextName = String(window.prompt('Rename item:', current) || '').trim();
+        if (!nextName || nextName === current) return;
+        try {
+          await invoke('browser_rename', { path: String(item?.path || ''), newName: nextName });
+          await browserFetchIndex();
+          browserSetStatus(`Renamed: ${current} -> ${nextName}`);
+        } catch (error) {
+          browserSetStatus(`Rename failed: ${String(error?.message || error)}`);
+        }
+      }
+
+      async function browserDelete(item, label = 'item') {
+        const invoke = getInvoke();
+        if (!invoke) return;
+        const ok = window.confirm(`Delete ${label}?\n${String(item?.name || item?.path || '')}`);
+        if (!ok) return;
+        try {
+          await invoke('browser_delete', { path: String(item?.path || '') });
+          await browserFetchIndex();
+          browserSetStatus(`Deleted ${label}: ${String(item?.name || '')}`);
+        } catch (error) {
+          browserSetStatus(`Delete failed: ${String(error?.message || error)}`);
+        }
+      }
+
+      function browserRenderClipRow(item) {
+        const row = document.createElement('div');
+        row.className = 'browser-item';
+        const wave = document.createElement('canvas');
+        wave.className = 'browser-wave';
+        const meta = document.createElement('div');
+        meta.className = 'browser-item-meta';
+        meta.innerHTML = `
+          <div class="browser-item-name">${String(item?.name || 'clip')}</div>
+          <div class="browser-item-sub">${browserHumanTime(item?.mtime_ms)} • ${browserHumanSize(item?.size)}</div>
+        `;
+        const actions = document.createElement('div');
+        actions.className = 'browser-actions';
+        const playBtn = document.createElement('button');
+        playBtn.type = 'button';
+        playBtn.textContent = browserState.auditionPath === String(item?.path || '') ? 'STOP' : 'PLAY';
+        playBtn.addEventListener('click', () => { void browserPlayClip(item); });
+        const loadBtn = document.createElement('button');
+        loadBtn.type = 'button';
+        loadBtn.textContent = 'LOAD';
+        loadBtn.addEventListener('click', () => { void browserLoadClipToActiveModule(item); });
+        const toLazyBtn = document.createElement('button');
+        toLazyBtn.type = 'button';
+        toLazyBtn.textContent = 'TO LAZY';
+        toLazyBtn.addEventListener('click', () => { void browserSendToLazy(item); });
+        const revealBtn = document.createElement('button');
+        revealBtn.type = 'button';
+        revealBtn.textContent = 'REVEAL';
+        revealBtn.addEventListener('click', () => { void browserReveal(item?.path); });
+        const renameBtn = document.createElement('button');
+        renameBtn.type = 'button';
+        renameBtn.textContent = 'RENAME';
+        renameBtn.addEventListener('click', () => { void browserRename(item); });
+        const delBtn = document.createElement('button');
+        delBtn.type = 'button';
+        delBtn.textContent = 'DEL';
+        delBtn.addEventListener('click', () => { void browserDelete(item, 'clip'); });
+        actions.append(playBtn, loadBtn, toLazyBtn, revealBtn, renameBtn, delBtn);
+        row.append(wave, meta, actions);
+        browserDrawPeaks(wave, browserWaveCache.get(String(item?.path || '')), browserState.auditionPath === String(item?.path || ''));
+        void browserGetPeaks(String(item?.path || '')).then((peaks) => {
+          browserDrawPeaks(wave, peaks, browserState.auditionPath === String(item?.path || ''));
+        });
+        return row;
+      }
+
+      function browserRenderSessionRow(item) {
+        const row = document.createElement('div');
+        row.className = 'browser-item';
+        const left = document.createElement('div');
+        left.style.width = '120px';
+        left.style.fontSize = '11px';
+        left.textContent = '.SESH';
+        const meta = document.createElement('div');
+        meta.className = 'browser-item-meta';
+        meta.innerHTML = `
+          <div class="browser-item-name">${String(item?.name || 'session.sesh')}</div>
+          <div class="browser-item-sub">${browserHumanTime(item?.mtime_ms)} • ${browserHumanSize(item?.size)}</div>
+        `;
+        const actions = document.createElement('div');
+        actions.className = 'browser-actions';
+        const loadBtn = document.createElement('button');
+        loadBtn.type = 'button';
+        loadBtn.textContent = 'LOAD';
+        loadBtn.addEventListener('click', () => { void browserLoadSession(item?.path); });
+        const revealBtn = document.createElement('button');
+        revealBtn.type = 'button';
+        revealBtn.textContent = 'REVEAL';
+        revealBtn.addEventListener('click', () => { void browserReveal(item?.path); });
+        const renameBtn = document.createElement('button');
+        renameBtn.type = 'button';
+        renameBtn.textContent = 'RENAME';
+        renameBtn.addEventListener('click', () => { void browserRename(item); });
+        const delBtn = document.createElement('button');
+        delBtn.type = 'button';
+        delBtn.textContent = 'DEL';
+        delBtn.addEventListener('click', () => { void browserDelete(item, 'session'); });
+        actions.append(loadBtn, revealBtn, renameBtn, delBtn);
+        row.append(left, meta, actions);
+        return row;
+      }
+
+      function browserRenderPresetRow(item) {
+        const row = document.createElement('div');
+        row.className = 'browser-item';
+        const left = document.createElement('div');
+        left.style.width = '120px';
+        left.style.fontSize = '11px';
+        left.textContent = String(item?.module || 'preset').toUpperCase();
+        const meta = document.createElement('div');
+        meta.className = 'browser-item-meta';
+        meta.innerHTML = `
+          <div class="browser-item-name">${String(item?.name || 'preset')}</div>
+          <div class="browser-item-sub">${String(item?.kind || '').toUpperCase()} • ${browserHumanTime(item?.mtime_ms)}</div>
+        `;
+        const actions = document.createElement('div');
+        actions.className = 'browser-actions';
+        const applyBtn = document.createElement('button');
+        applyBtn.type = 'button';
+        applyBtn.textContent = 'APPLY';
+        applyBtn.addEventListener('click', () => { void browserApplyPreset(item); });
+        const revealBtn = document.createElement('button');
+        revealBtn.type = 'button';
+        revealBtn.textContent = 'REVEAL';
+        revealBtn.addEventListener('click', () => { void browserReveal(item?.path); });
+        const renameBtn = document.createElement('button');
+        renameBtn.type = 'button';
+        renameBtn.textContent = 'RENAME';
+        renameBtn.addEventListener('click', () => { void browserRename(item); });
+        const delBtn = document.createElement('button');
+        delBtn.type = 'button';
+        delBtn.textContent = 'DEL';
+        delBtn.addEventListener('click', () => { void browserDelete(item, 'preset'); });
+        actions.append(applyBtn, revealBtn, renameBtn, delBtn);
+        row.append(left, meta, actions);
+        return row;
+      }
+
+      function browserRenderList() {
+        if (!browserList) return;
+        browserList.innerHTML = '';
+        for (const btn of browserTabButtons) {
+          const active = String(btn.dataset.browserTab || '') === browserState.tab;
+          btn.setAttribute('aria-selected', String(active));
+        }
+        if (browserSortBtn) browserSortBtn.textContent = `SORT: ${browserState.sort}`;
+        if (browserSearchInput && browserSearchInput.value !== browserState.query) {
+          browserSearchInput.value = browserState.query;
+        }
+        const items = browserFilteredItems();
+        if (!items.length) {
+          const empty = document.createElement('div');
+          empty.className = 'browser-status';
+          empty.textContent = 'No items.';
+          browserList.appendChild(empty);
+          return;
+        }
+        for (const item of items) {
+          const row = browserState.tab === 'SESH'
+            ? browserRenderSessionRow(item)
+            : browserState.tab === 'PRESETS'
+              ? browserRenderPresetRow(item)
+              : browserRenderClipRow(item);
+          browserList.appendChild(row);
+        }
+      }
+
+      function setBrowserOpen(next) {
+        browserPanelOpen = Boolean(next);
+        browserBtn?.setAttribute('aria-pressed', String(browserPanelOpen));
+        browserPanel?.classList.toggle('hidden', !browserPanelOpen);
+        browserPanel?.setAttribute('aria-hidden', String(!browserPanelOpen));
+        if (browserPanelOpen) {
+          void browserFetchIndex();
+        } else {
+          browserCloseChooser(null);
+          browserStopAudition();
+        }
+      }
+
+      async function exportCliplibIndexForSession() {
+        const invoke = getInvoke();
+        if (!invoke) return { schemaVersion: 1, clips: [] };
+        try {
+          const clips = await invoke('cliplib_list');
+          return { schemaVersion: 1, clips: Array.isArray(clips) ? clips : [] };
+        } catch {
+          return { schemaVersion: 1, clips: [] };
+        }
+      }
+
+      async function collectSessionChunks({ includeOnlyDirty = true, timeoutMs = 2200 } = {}) {
+        const chunks = {};
+        sessionExportCollector = { chunks, dirtyByModule: {} };
+        broadcastToAllFrames({
+          type: 'SESSION_EXPORT_REQ',
+          version: 1,
+          payload: { includeOnlyDirty: Boolean(includeOnlyDirty) },
+        });
+        await new Promise((resolve) => setTimeout(resolve, timeoutMs));
+        sessionExportCollector = null;
+        return chunks;
+      }
+
+      async function buildGlobalSessionPayload({ includeOnlyDirty = true } = {}) {
+        const moduleChunks = await collectSessionChunks({ includeOnlyDirty });
+        return {
+          format: 'denarrator-session',
+          version: 1,
+          sessionVersion: 1,
+          savedAt: new Date().toISOString(),
+          app: { name: 'DENARRATOR' },
+          ui: {
+            activeTab: String(activePaneId || 'lazy-pane').replace('-pane', ''),
+            panels: {
+              midiOpen: Boolean(midiPanelOpen),
+            },
+          },
+          cliplib: await exportCliplibIndexForSession(),
+          midi: {
+            mappings: midiMappings.map(stripMappingRuntime),
+          },
+          modules: moduleChunks,
+        };
+      }
+
+      async function applyGlobalSessionPayload(parsed) {
+        const mappings = parsed?.midi?.mappings;
+        applyMidiMappingsFromPayload(mappings);
+        midiMapMode = false;
+        clearMidiArmedTarget();
+        updateMidiUi();
+        const tabId = String(parsed?.ui?.activeTab || '').toLowerCase();
+        if (tabId) {
+          const paneId = `${tabId}-pane`;
+          if (tabByPaneId.has(paneId)) activate(paneId);
+        }
+        const modules = parsed?.modules && typeof parsed.modules === 'object' ? parsed.modules : {};
+        for (const [moduleId, chunk] of Object.entries(modules)) {
+          const frame = getFrameByModuleId(moduleId);
+          if (!frame || !chunk) continue;
+          postToFrame(frame, {
+            type: 'SESSION_IMPORT',
+            version: 1,
+            payload: { chunk },
+          });
+        }
+      }
+
+      function setPanicButtonState(next) {
+        panicState = next;
+        if (!panicBtn) return;
+        panicBtn.dataset.state = next;
+        if (next === 'armed') {
+          panicBtn.textContent = '¬ sure?';
+          return;
+        }
+        if (next === 'resetting') {
+          panicBtn.textContent = '¬ ...';
+          return;
+        }
+        panicBtn.textContent = '¬';
+      }
+
+      function disarmPanicButton() {
+        if (panicArmTimer) {
+          clearTimeout(panicArmTimer);
+          panicArmTimer = null;
+        }
+        if (!panicResetting) {
+          setPanicButtonState('idle');
+        }
+      }
+
+      function armPanicButton() {
+        disarmPanicButton();
+        setPanicButtonState('armed');
+        panicArmTimer = setTimeout(() => {
+          panicArmTimer = null;
+          if (!panicResetting) setPanicButtonState('idle');
+        }, 2000);
+      }
+
+      async function ensureHostAudioRuntime() {
+        const Ctor = window.AudioContext || window.webkitAudioContext;
+        if (!Ctor) return;
+        if (hostAudioContext && hostMasterGain && hostPanicGain) return;
+        hostAudioContext = new Ctor();
+        hostMasterGain = hostAudioContext.createGain();
+        hostPanicGain = hostAudioContext.createGain();
+        hostIzerDryGain = hostAudioContext.createGain();
+        hostIzerWetGain = hostAudioContext.createGain();
+        hostIzerOutGain = hostAudioContext.createGain();
+        hostIzerFilters = {
+          hpf: hostAudioContext.createBiquadFilter(),
+          low: hostAudioContext.createBiquadFilter(),
+          mid1: hostAudioContext.createBiquadFilter(),
+          mid2: hostAudioContext.createBiquadFilter(),
+          high: hostAudioContext.createBiquadFilter(),
+        };
+        hostIzerFilters.hpf.type = 'highpass';
+        hostIzerFilters.low.type = 'lowshelf';
+        hostIzerFilters.mid1.type = 'peaking';
+        hostIzerFilters.mid2.type = 'peaking';
+        hostIzerFilters.high.type = 'highshelf';
+
+        hostMasterGain.connect(hostIzerDryGain);
+        hostMasterGain.connect(hostIzerFilters.hpf);
+        hostIzerFilters.hpf.connect(hostIzerFilters.low);
+        hostIzerFilters.low.connect(hostIzerFilters.mid1);
+        hostIzerFilters.mid1.connect(hostIzerFilters.mid2);
+        hostIzerFilters.mid2.connect(hostIzerFilters.high);
+        hostIzerFilters.high.connect(hostIzerWetGain);
+        hostIzerDryGain.connect(hostIzerOutGain);
+        hostIzerWetGain.connect(hostIzerOutGain);
+        hostIzerOutGain.connect(hostPanicGain);
+        hostPanicGain.connect(hostAudioContext.destination);
+        applyHostIzerState(hostIzerState);
+      }
+
+      async function closeHostAudioRuntime() {
+        if (!hostAudioContext) return;
+        try {
+          await hostAudioContext.close();
+        } catch {
+          // Ignore close errors.
+        }
+        hostAudioContext = null;
+        hostMasterGain = null;
+        hostPanicGain = null;
+        hostIzerDryGain = null;
+        hostIzerWetGain = null;
+        hostIzerOutGain = null;
+        hostIzerFilters = null;
+      }
+
+      function clampNum(value, lo, hi, fallback) {
+        const v = Number(value);
+        if (!Number.isFinite(v)) return fallback;
+        return Math.max(lo, Math.min(hi, v));
+      }
+
+      function sanitizeIzerParams(raw) {
+        const payload = raw && typeof raw === 'object' ? raw : {};
+        const bandsIn = payload.bands && typeof payload.bands === 'object' ? payload.bands : {};
+        return {
+          enabled: payload.enabled !== false,
+          mix: clampNum(payload.mix, 0, 1, 0.25),
+          bands: {
+            hpf: {
+              enabled: bandsIn.hpf?.enabled !== false,
+              freq: clampNum(bandsIn.hpf?.freq, 20, 400, 20),
+              q: clampNum(bandsIn.hpf?.q, 0.3, 2.5, 0.7),
+            },
+            low: {
+              enabled: bandsIn.low?.enabled !== false,
+              freq: clampNum(bandsIn.low?.freq, 60, 300, 120),
+              gainDb: clampNum(bandsIn.low?.gainDb, -12, 12, 0),
+            },
+            mid1: {
+              enabled: bandsIn.mid1?.enabled !== false,
+              freq: clampNum(bandsIn.mid1?.freq, 200, 4000, 800),
+              gainDb: clampNum(bandsIn.mid1?.gainDb, -18, 18, 0),
+              q: clampNum(bandsIn.mid1?.q, 0.3, 2.0, 0.7),
+            },
+            mid2: {
+              enabled: bandsIn.mid2?.enabled !== false,
+              freq: clampNum(bandsIn.mid2?.freq, 2000, 10000, 4500),
+              gainDb: clampNum(bandsIn.mid2?.gainDb, -18, 18, 0),
+              q: clampNum(bandsIn.mid2?.q, 0.3, 2.0, 0.7),
+            },
+            high: {
+              enabled: bandsIn.high?.enabled !== false,
+              freq: clampNum(bandsIn.high?.freq, 4000, 16000, 9000),
+              gainDb: clampNum(bandsIn.high?.gainDb, -12, 12, 0),
+            },
+          },
+        };
+      }
+
+      function applyHostIzerState(raw) {
+        hostIzerState = sanitizeIzerParams(raw);
+        try { localStorage.setItem('denarrator.izer.host', JSON.stringify(hostIzerState)); } catch {}
+        if (!hostAudioContext || !hostIzerFilters || !hostIzerDryGain || !hostIzerWetGain) return;
+        const now = hostAudioContext.currentTime;
+        const tc = 0.035;
+        const mix = hostIzerState.enabled ? hostIzerState.mix : 0;
+        hostIzerDryGain.gain.setTargetAtTime(1 - mix, now, tc);
+        hostIzerWetGain.gain.setTargetAtTime(mix, now, tc);
+        const b = hostIzerState.bands;
+        hostIzerFilters.hpf.frequency.setTargetAtTime(b.hpf.enabled ? b.hpf.freq : 20, now, tc);
+        hostIzerFilters.hpf.Q.setTargetAtTime(b.hpf.q, now, tc);
+        hostIzerFilters.low.frequency.setTargetAtTime(b.low.freq, now, tc);
+        hostIzerFilters.low.gain.setTargetAtTime(b.low.enabled ? b.low.gainDb : 0, now, tc);
+        hostIzerFilters.mid1.frequency.setTargetAtTime(b.mid1.freq, now, tc);
+        hostIzerFilters.mid1.Q.setTargetAtTime(b.mid1.q, now, tc);
+        hostIzerFilters.mid1.gain.setTargetAtTime(b.mid1.enabled ? b.mid1.gainDb : 0, now, tc);
+        hostIzerFilters.mid2.frequency.setTargetAtTime(b.mid2.freq, now, tc);
+        hostIzerFilters.mid2.Q.setTargetAtTime(b.mid2.q, now, tc);
+        hostIzerFilters.mid2.gain.setTargetAtTime(b.mid2.enabled ? b.mid2.gainDb : 0, now, tc);
+        hostIzerFilters.high.frequency.setTargetAtTime(b.high.freq, now, tc);
+        hostIzerFilters.high.gain.setTargetAtTime(b.high.enabled ? b.high.gainDb : 0, now, tc);
+      }
+
+      function mapEq16ToHostIzerParams(payload) {
+        const p = payload && typeof payload === 'object' ? payload : {};
+        const bands = Array.isArray(p.bands) ? p.bands : [];
+        const get = (idx, fallback = 0) => {
+          const v = Number(bands[idx]);
+          if (!Number.isFinite(v)) return fallback;
+          return Math.max(-24, Math.min(24, v));
+        };
+        return {
+          enabled: true,
+          mix: 1,
+          bands: {
+            hpf: { enabled: true, freq: get(0) < -4 ? 70 : get(1) < -3 ? 55 : get(2) < -2 ? 40 : 20, q: 0.7 },
+            low: { enabled: true, freq: 120, gainDb: Math.max(-12, Math.min(12, (get(2) + get(3) + get(4) + get(5)) / 4)) },
+            mid1: { enabled: true, freq: 800, q: 0.8, gainDb: Math.max(-18, Math.min(18, (get(6) + get(7) + get(8) + get(9)) / 4)) },
+            mid2: { enabled: true, freq: 4500, q: 0.8, gainDb: Math.max(-18, Math.min(18, (get(10) + get(11) + get(12)) / 3)) },
+            high: { enabled: true, freq: 10000, gainDb: Math.max(-12, Math.min(12, (get(13) + get(14) + get(15)) / 3)) },
+          },
+        };
+      }
+
+      async function ensureHostTapRuntime() {
+        if (hostTapReady && hostTapStream && hostTapAudioContext && hostTapAnalyserL && hostTapAnalyserR && hostTapAnalyserF) {
+          return true;
+        }
+        if (hostTapRequested) {
+          return false;
+        }
+        const getDisplayMedia = navigator?.mediaDevices?.getDisplayMedia;
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (typeof getDisplayMedia !== 'function' || !AudioCtx) {
+          return false;
+        }
+        hostTapRequested = true;
+        try {
+          const stream = await getDisplayMedia.call(navigator.mediaDevices, { audio: true, video: true });
+          try {
+            stream.getVideoTracks?.().forEach((track) => track.stop());
+          } catch {}
+          const audioTracks = stream.getAudioTracks?.() || [];
+          if (!audioTracks.length) {
+            try { stream.getTracks().forEach((track) => track.stop()); } catch {}
+            hostTapRequested = false;
+            return false;
+          }
+          const tapCtx = new AudioCtx({ latencyHint: 'interactive' });
+          const source = tapCtx.createMediaStreamSource(stream);
+          const splitter = tapCtx.createChannelSplitter(2);
+          const analyserL = tapCtx.createAnalyser();
+          const analyserR = tapCtx.createAnalyser();
+          const analyserF = tapCtx.createAnalyser();
+          analyserL.fftSize = 2048;
+          analyserR.fftSize = 2048;
+          analyserF.fftSize = 2048;
+          analyserF.smoothingTimeConstant = 0.65;
+          source.connect(splitter);
+          splitter.connect(analyserL, 0);
+          splitter.connect(analyserR, 1);
+          source.connect(analyserF);
+          hostTapStream = stream;
+          hostTapAudioContext = tapCtx;
+          hostTapSource = source;
+          hostTapSplitter = splitter;
+          hostTapAnalyserL = analyserL;
+          hostTapAnalyserR = analyserR;
+          hostTapAnalyserF = analyserF;
+          hostTapReady = true;
+          showMidiToast('Master tap ready');
+          return true;
+        } catch {
+          hostTapReady = false;
+          return false;
+        } finally {
+          hostTapRequested = false;
+        }
+      }
+
+      async function releaseHostTapRuntime() {
+        if (globalRecActive || nuklearSubscribed) return;
+        try { hostTapSource?.disconnect(); } catch {}
+        try { hostTapSplitter?.disconnect(); } catch {}
+        try { hostTapAnalyserL?.disconnect(); } catch {}
+        try { hostTapAnalyserR?.disconnect(); } catch {}
+        try { hostTapAnalyserF?.disconnect(); } catch {}
+        hostTapSource = null;
+        hostTapSplitter = null;
+        hostTapAnalyserL = null;
+        hostTapAnalyserR = null;
+        hostTapAnalyserF = null;
+        if (hostTapAudioContext) {
+          try { await hostTapAudioContext.close(); } catch {}
+        }
+        hostTapAudioContext = null;
+        if (hostTapStream) {
+          try { hostTapStream.getTracks().forEach((track) => track.stop()); } catch {}
+        }
+        hostTapStream = null;
+        hostTapReady = false;
+      }
+
+      async function handleCliplibAdd(data, sourceFrame) {
+        const invoke = getInvoke();
+        if (!invoke) {
+          postToFrame(sourceFrame, {
+            type: 'CLIPLIB_ADD_ERR',
+            version: 1,
+            error: 'No native invoke bridge available',
+          });
+          return;
+        }
+        const wavBytesBase64 = coerceBase64(data.wavBytesBase64 || data.wavBytesB64 || data.wavBase64);
+        if (!wavBytesBase64) {
+          postToFrame(sourceFrame, {
+            type: 'CLIPLIB_ADD_ERR',
+            version: 1,
+            error: 'Missing wav bytes',
+          });
+          return;
+        }
+        const suggestedName = String(data.name || 'i2_clip').trim() || 'i2_clip';
+        const target = String(data.target || 'lazy');
+
+        if (target === 'morphA' || target === 'morphB') {
+          postToFrame(morphFrame, {
+            type: 'DENARRATOR_IMPORT_CLIP',
+            version: 1,
+            targetSlot: target === 'morphA' ? 'A' : 'B',
+            name: suggestedName,
+            wavBytesBase64,
+            meta: data.meta || null,
+          });
+          postToFrame(sourceFrame, {
+            type: 'CLIPLIB_ADD_OK',
+            version: 1,
+            target,
+            name: suggestedName,
+          });
+          return;
+        }
+
+        if (target === 'mirrorA' || target === 'mirrorB') {
+          postToFrame(mirrorFrame, {
+            type: 'DENARRATOR_IMPORT_CLIP',
+            version: 1,
+            targetSlot: target === 'mirrorA' ? 'A' : 'B',
+            name: suggestedName,
+            wavBytesBase64,
+            meta: data.meta || null,
+          });
+          postToFrame(sourceFrame, {
+            type: 'CLIPLIB_ADD_OK',
+            version: 1,
+            target,
+            name: suggestedName,
+          });
+          return;
+        }
+
+        if (target === 'algebraA' || target === 'algebraB') {
+          postToFrame(algebraFrame, {
+            type: 'DENARRATOR_IMPORT_CLIP',
+            version: 1,
+            targetSlot: target === 'algebraA' ? 'A' : 'B',
+            name: suggestedName,
+            wavBytesBase64,
+            meta: data.meta || null,
+          });
+          postToFrame(sourceFrame, {
+            type: 'CLIPLIB_ADD_OK',
+            version: 1,
+            target,
+            name: suggestedName,
+          });
+          return;
+        }
+
+        if (target === 'rcf') {
+          postToFrame(rcfFrame, {
+            type: 'DENARRATOR_IMPORT_CLIP',
+            version: 1,
+            targetSlot: data?.targetSlot ?? null,
+            name: suggestedName,
+            wavBytesBase64,
+            meta: data.meta || null,
+          });
+          postToFrame(sourceFrame, {
+            type: 'CLIPLIB_ADD_OK',
+            version: 1,
+            target,
+            name: suggestedName,
+          });
+          return;
+        }
+
+        if (target === 'testmodule') {
+          postToFrame(testmoduleFrame, {
+            type: 'DENARRATOR_IMPORT_CLIP',
+            version: 1,
+            targetSlot: data?.targetSlot ?? null,
+            name: suggestedName,
+            wavBytesBase64,
+            meta: data.meta || null,
+          });
+          postToFrame(sourceFrame, {
+            type: 'CLIPLIB_ADD_OK',
+            version: 1,
+            target,
+            name: suggestedName,
+          });
+          return;
+        }
+
+        if (target === 'negInput' || target === 'negExternal') {
+          postToFrame(negFrame, {
+            type: 'DENARRATOR_IMPORT_CLIP',
+            version: 1,
+            targetSlot: target === 'negInput' ? 'input' : 'external',
+            name: suggestedName,
+            wavBytesBase64,
+            meta: data.meta || null,
+          });
+          postToFrame(sourceFrame, {
+            type: 'CLIPLIB_ADD_OK',
+            version: 1,
+            target,
+            name: suggestedName,
+          });
+          return;
+        }
+
+        if (target === 'i2') {
+          postToFrame(i2Frame, {
+            type: 'CLIPLIB_ADD_OK',
+            version: 1,
+            target,
+            name: suggestedName,
+          });
+          return;
+        }
+
+        try {
+          const result = await invoke('cliplib_write_wav', {
+            dataBase64: wavBytesBase64,
+            suggestedName,
+          });
+          const payload = {
+            type: 'CLIPLIB_ADD_OK',
+            version: 1,
+            clipId: result?.clip_id || '',
+            path: result?.path || '',
+            name: result?.name || suggestedName,
+            meta: data.meta || null,
+            target,
+          };
+          postToFrame(sourceFrame, payload);
+          if (target === 'lazy') {
+            postToFrame(lazyFrame, {
+              type: 'CLIPLIB_UPDATED',
+              version: 1,
+              clipId: payload.clipId,
+              path: payload.path,
+              name: payload.name,
+              meta: payload.meta,
+              wavBytesBase64,
+              source: 'i2',
+            });
+          }
+        } catch (error) {
+          postToFrame(sourceFrame, {
+            type: 'CLIPLIB_ADD_ERR',
+            version: 1,
+            error: String(error?.message || error || 'cliplib write failed'),
+          });
+        }
+      }
+
+      async function handleCliplibListRequest(requestId, sourceFrame) {
+        const invoke = getInvoke();
+        if (!invoke) {
+          postToFrame(sourceFrame, {
+            type: 'CLIPLIB_LIST_ERR',
+            version: 1,
+            requestId,
+            error: 'No native invoke bridge available',
+          });
+          return;
+        }
+        try {
+          const items = await invoke('cliplib_list');
+          postToFrame(sourceFrame, {
+            type: 'CLIPLIB_LIST_RES',
+            version: 1,
+            requestId,
+            items: Array.isArray(items) ? items : [],
+          });
+        } catch (error) {
+          postToFrame(sourceFrame, {
+            type: 'CLIPLIB_LIST_ERR',
+            version: 1,
+            requestId,
+            error: String(error?.message || error || 'cliplib list failed'),
+          });
+        }
+      }
+
+      async function handleCliplibWavRequest(path, requestId, sourceFrame) {
+        const invoke = getInvoke();
+        if (!invoke || typeof path !== 'string' || !path) {
+          postToFrame(sourceFrame, {
+            type: 'CLIPLIB_WAV_ERR',
+            version: 1,
+            requestId,
+            error: 'Invalid wav request',
+          });
+          return;
+        }
+        try {
+          const wavBytesBase64 = await invoke('cliplib_read_wav_base64', { path });
+          postToFrame(sourceFrame, {
+            type: 'CLIPLIB_WAV_RES',
+            version: 1,
+            requestId,
+            path,
+            wavBytesBase64,
+          });
+        } catch (error) {
+          postToFrame(sourceFrame, {
+            type: 'CLIPLIB_WAV_ERR',
+            version: 1,
+            requestId,
+            error: String(error?.message || error || 'cliplib wav read failed'),
+          });
+        }
+      }
+
+      window.addEventListener('message', (event) => {
+        const data = event?.data;
+        if (!data || typeof data.type !== 'string') return;
+        if (data.type === 'HUD_SET') {
+          const payload = (data && typeof data.payload === 'object' && data.payload) ? data.payload : data;
+          hudSet(payload?.text ?? 'READY', payload?.priority ?? 1, payload?.ttlMs ?? 1500);
+          return;
+        }
+        if (data.type === 'denarrator-meter') {
+          const next = Number(data.level);
+          if (!Number.isFinite(next)) return;
+          const clamped = Math.max(0, Math.min(1, next));
+          meterTarget = Math.max(meterTarget, clamped);
+          const paneId = paneIdFromSource(event.source);
+          if (paneId && paneSoundState.has(paneId)) {
+            const sound = paneSoundState.get(paneId);
+            sound.target = Math.max(sound.target, clamped);
+          }
+          return;
+        }
+        if (data.type === 'IZER_STATE_REQ' && data.version === 1) {
+          postToFrame(izerFrame, {
+            type: 'IZER_STATE_SYNC',
+            version: 1,
+            payload: hostIzerState,
+          });
+          return;
+        }
+        if ((data.type === 'IZER_EQ_SET' || data.type === 'IZER_GROUPS_SET') && data.version === 1) {
+          const payload = data.payload || {};
+          const target = String(payload.target || 'LAZY').toUpperCase();
+          if (target === 'MASTER') {
+            const hostPayload = mapEq16ToHostIzerParams(payload);
+            void ensureHostAudioRuntime().then(() => applyHostIzerState(hostPayload));
+          } else {
+            try {
+              localStorage.setItem('denarrator.izer.eq.lazy', JSON.stringify(payload));
+            } catch {}
+            postToFrame(lazyFrame, {
+              type: 'LAZY_IZER_EQ_SET',
+              version: 1,
+              payload,
+            });
+          }
+          return;
+        }
+        if (data.type === 'IZER_PARAMS_SET' && data.version === 1) {
+          void ensureHostAudioRuntime().then(() => applyHostIzerState(data.payload || {}));
+          return;
+        }
+        if (data.type === 'GLOBAL_PLAY_START' && data.version === 1) {
+          const token = String(data?.payload?.token || '');
+          if (!token) return;
+          if (!globalPlayState.active.has(token)) {
+            globalPlayState.active.add(token);
+            globalPlayState.sources.set(token, {
+              moduleId: String(data?.payload?.moduleId || 'unknown'),
+              source: String(data?.payload?.source || 'audio'),
+              startedAtMs: Date.now(),
+            });
+          }
+          updateGlobalPlayIndicator();
+          return;
+        }
+        if (data.type === 'GLOBAL_PLAY_STOP' && data.version === 1) {
+          const token = String(data?.payload?.token || '');
+          if (!token) return;
+          globalPlayState.active.delete(token);
+          globalPlayState.sources.delete(token);
+          updateGlobalPlayIndicator();
+          return;
+        }
+        if (data.type === 'MIDI_TARGETS_REGISTER' && data.version === 1) {
+          const moduleId = String(data.moduleId || '');
+          const targets = Array.isArray(data.targets) ? data.targets : [];
+          for (const target of targets) {
+            const id = String(target?.id || '');
+            if (!id) continue;
+            midiTargetRegistry.set(id, {
+              moduleId,
+              id,
+              label: String(target?.label || id),
+              kind: String(target?.kind || 'continuous'),
+              default: Number.isFinite(target?.default) ? Number(target.default) : 0,
+            });
+          }
+          updateMidiUi();
+          return;
+        }
+        if (data.type === 'BROWSER_CAPS_REGISTER' && data.version === 1) {
+          const payload = data?.payload || {};
+          const moduleId = String(payload?.moduleId || '').toLowerCase();
+          if (!moduleId) return;
+          browserCapsRegistry.set(moduleId, {
+            moduleId,
+            displayName: String(payload?.displayName || moduleId),
+            accepts: payload?.accepts || {},
+            loadTargets: Array.isArray(payload?.loadTargets) ? payload.loadTargets : [],
+            defaults: payload?.defaults || {},
+          });
+          return;
+        }
+        if (data.type === 'BROWSER_LOAD_ACK' && data.version === 1) {
+          const ok = Boolean(data?.payload?.ok);
+          const moduleId = String(data?.payload?.moduleId || 'module');
+          if (ok) browserSetStatus(`Loaded in ${moduleId}.`);
+          else browserSetStatus(`Load failed in ${moduleId}: ${String(data?.payload?.error || 'error')}`);
+          return;
+        }
+        if (data.type === 'NUKLEAR_SUBSCRIBE' && data.version === 1 && event.source === nuklearFrame?.contentWindow) {
+          nuklearSubscribed = true;
+          const reqFps = Math.round(Number(data?.payload?.fps) || 30);
+          const reqFft = Math.round(Number(data?.payload?.fftSize) || 512);
+          nuklearFps = Math.max(10, Math.min(60, reqFps));
+          nuklearFftSize = Math.max(128, Math.min(2048, reqFft));
+          void ensureHostTapRuntime();
+          return;
+        }
+        if (data.type === 'NUKLEAR_UNSUBSCRIBE' && data.version === 1 && event.source === nuklearFrame?.contentWindow) {
+          nuklearSubscribed = false;
+          void releaseHostTapRuntime();
+          return;
+        }
+        if (data.type === 'NUKLEAR_CONFIG' && data.version === 1 && event.source === nuklearFrame?.contentWindow) {
+          const reqFps = Math.round(Number(data?.payload?.fps) || nuklearFps);
+          const reqFft = Math.round(Number(data?.payload?.fftSize) || nuklearFftSize);
+          nuklearFps = Math.max(10, Math.min(60, reqFps));
+          nuklearFftSize = Math.max(128, Math.min(2048, reqFft));
+          return;
+        }
+        if (data.type === 'SESSION_EXPORT_RES' && data.version === 1) {
+          if (!sessionExportCollector) return;
+          const moduleId = String(data?.payload?.moduleId || '');
+          const chunk = data?.payload?.chunk;
+          if (!moduleId || !chunk) return;
+          sessionExportCollector.chunks[moduleId] = chunk;
+          sessionExportCollector.dirtyByModule[moduleId] = Boolean(data?.payload?.dirty);
+          setModuleDirty(moduleId, Boolean(data?.payload?.dirty));
+          return;
+        }
+        if (data.type === 'DIRTY_ON' && data.version === 1) {
+          const paneId = paneIdFromSource(event.source);
+          const fallbackModule = paneId ? paneIdToModuleId(paneId) : '';
+          const moduleId = String(data?.payload?.moduleId || fallbackModule);
+          if (!moduleId) return;
+          setModuleDirty(moduleId, true);
+          return;
+        }
+        if (data.type === 'DIRTY_OFF' && data.version === 1) {
+          const paneId = paneIdFromSource(event.source);
+          const fallbackModule = paneId ? paneIdToModuleId(paneId) : '';
+          const moduleId = String(data?.payload?.moduleId || fallbackModule);
+          if (!moduleId) return;
+          setModuleDirty(moduleId, false);
+          return;
+        }
+        if (data.type === 'MODULE_RESET_ACK' && data.version === 1) {
+          return;
+        }
+        if (data.type === 'MIDI_LEARN_ARM_TARGET' && data.version === 1) {
+          if (!midiMapMode) return;
+          const targetId = String(data.targetId || '');
+          if (!targetId) return;
+          setMidiArmedTarget(targetId, String(data.label || targetId));
+          showMidiToast(`Armed: ${String(data.label || targetId)}`);
+          return;
+        }
+        if (data.type === 'DENARRATOR_GLOBAL_TOGGLE' && data.version === 1) {
+          const fromKnownFrame = frameEls.some((frame) => frame?.contentWindow === event.source);
+          if (fromKnownFrame) {
+            toggleGlobalPlaying();
+          }
+          return;
+        }
+        if (data.type === 'BROWSER_REQUEST_LOAD' && data.version === 1) {
+          const payload = data?.payload || {};
+          if (String(payload?.itemType || '') === 'audio') {
+            void browserLoadClipToActiveModule({
+              clip_id: String(payload?.clipId || ''),
+              path: String(payload?.path || ''),
+              name: String(payload?.name || 'clip'),
+            });
+          }
+          return;
+        }
+        if (data.type === 'BROWSER_REQUEST_TO_LAZY' && data.version === 1) {
+          const payload = data?.payload || {};
+          void browserSendToLazy({
+            clip_id: String(payload?.clipId || ''),
+            path: String(payload?.path || ''),
+            name: String(payload?.name || 'clip'),
+          });
+          return;
+        }
+        if (data.type === 'BROWSER_REQUEST_LOAD_SESH' && data.version === 1) {
+          void browserLoadSession(String(data?.payload?.path || ''));
+          return;
+        }
+        if (data.type === 'PATHS_REQ' && data.version === 1) {
+          if (denPaths && event.source && typeof event.source.postMessage === 'function') {
+            event.source.postMessage({
+              type: 'PATHS_BROADCAST',
+              version: 1,
+              payload: denPaths,
+            }, '*');
+          }
+          return;
+        }
+        if (data.version !== 1) return;
+        if ((data.type === 'CLIPLIB_ADD' || data.type === 'DENARRATOR_AUDIO_SEND') &&
+          (event.source === i2Frame?.contentWindow
+            || event.source === primFrame?.contentWindow
+            || event.source === rcfFrame?.contentWindow
+            || event.source === testmoduleFrame?.contentWindow
+            || event.source === thereminFrame?.contentWindow
+            || event.source === particlesFrame?.contentWindow
+            || event.source === pictonalFrame?.contentWindow
+            || event.source === projektorFrame?.contentWindow)) {
+          const sourceFrame = event.source === primFrame?.contentWindow
+            ? primFrame
+            : event.source === rcfFrame?.contentWindow
+              ? rcfFrame
+              : event.source === testmoduleFrame?.contentWindow
+                ? testmoduleFrame
+              : event.source === thereminFrame?.contentWindow
+                ? thereminFrame
+                : event.source === particlesFrame?.contentWindow
+                  ? particlesFrame
+                  : event.source === pictonalFrame?.contentWindow
+                    ? pictonalFrame
+                    : event.source === projektorFrame?.contentWindow
+                      ? projektorFrame
+              : i2Frame;
+          void handleCliplibAdd(data, sourceFrame);
+          return;
+        }
+        if (data.type === 'CLIPLIB_LIST_REQ' &&
+          (event.source === lazyFrame?.contentWindow
+            || event.source === rcfFrame?.contentWindow
+            || event.source === testmoduleFrame?.contentWindow
+            || event.source === thereminFrame?.contentWindow
+            || event.source === particlesFrame?.contentWindow
+            || event.source === pictonalFrame?.contentWindow
+            || event.source === projektorFrame?.contentWindow)) {
+          const sourceFrame = event.source === rcfFrame?.contentWindow
+            ? rcfFrame
+            : event.source === testmoduleFrame?.contentWindow
+              ? testmoduleFrame
+            : event.source === thereminFrame?.contentWindow
+              ? thereminFrame
+              : event.source === particlesFrame?.contentWindow
+                ? particlesFrame
+                : event.source === pictonalFrame?.contentWindow
+                  ? pictonalFrame
+                  : event.source === projektorFrame?.contentWindow
+                    ? projektorFrame
+                : lazyFrame;
+          void handleCliplibListRequest(data.requestId || null, sourceFrame);
+          return;
+        }
+        if (data.type === 'CLIPLIB_WAV_REQ' &&
+          (event.source === lazyFrame?.contentWindow
+            || event.source === rcfFrame?.contentWindow
+            || event.source === testmoduleFrame?.contentWindow
+            || event.source === thereminFrame?.contentWindow
+            || event.source === particlesFrame?.contentWindow
+            || event.source === pictonalFrame?.contentWindow
+            || event.source === projektorFrame?.contentWindow)) {
+          const sourceFrame = event.source === rcfFrame?.contentWindow
+            ? rcfFrame
+            : event.source === testmoduleFrame?.contentWindow
+              ? testmoduleFrame
+            : event.source === thereminFrame?.contentWindow
+              ? thereminFrame
+              : event.source === particlesFrame?.contentWindow
+                ? particlesFrame
+                : event.source === pictonalFrame?.contentWindow
+                  ? pictonalFrame
+                  : event.source === projektorFrame?.contentWindow
+                    ? projektorFrame
+                : lazyFrame;
+          void handleCliplibWavRequest(data.path, data.requestId || null, sourceFrame);
+        }
+      });
+
+      function broadcastMasterSettings() {
+        const effectiveVolume = panicVolumeOverride == null ? masterVolume : panicVolumeOverride;
+        for (const frame of frameEls) {
+          try {
+            frame.contentWindow?.postMessage({ type: 'denarrator-master-volume', value: effectiveVolume }, '*');
+            frame.contentWindow?.postMessage({ type: 'denarrator-master-limiter', enabled: limiterEnabled }, '*');
+          } catch {
+            // Ignore unavailable frame windows.
+          }
+        }
+      }
+
+      async function triggerPanicKill() {
+        if (panicResetting) return;
+        panicResetting = true;
+        disarmPanicButton();
+        setPanicButtonState('resetting');
+        if (globalRecActive) {
+          try { await stopGlobalRecording(); } catch {}
+        }
+        panicVolumeOverride = 0;
+        globalPlayState.active.clear();
+        globalPlayState.sources.clear();
+        updateGlobalPlayIndicator();
+        if (hostPanicGain) {
+          hostPanicGain.gain.setValueAtTime(0, (hostAudioContext?.currentTime || 0));
+        }
+        broadcastMasterSettings();
+        broadcastToAllFrames({ type: 'GLOBAL_PLAY_CLEAR', version: 1 });
+        broadcastToAllFrames({ type: 'PANIC_KILL', version: 1, payload: { reason: 'user' } });
+        try {
+          await closeHostAudioRuntime();
+          await ensureHostAudioRuntime();
+          if (hostPanicGain) {
+            hostPanicGain.gain.setValueAtTime(1, (hostAudioContext?.currentTime || 0));
+          }
+          panicVolumeOverride = null;
+          broadcastMasterSettings();
+          broadcastToAllFrames({
+            type: 'AUDIO_RESET_DONE',
+            version: 1,
+            payload: { resetId: `panic_${Date.now()}_${panicResetSeq++}` },
+          });
+        } finally {
+          setTimeout(() => {
+            panicResetting = false;
+            setPanicButtonState('idle');
+          }, 260);
+        }
+      }
+
+      for (const frame of frameEls) {
+        frame.addEventListener('load', () => {
+          broadcastMasterSettings();
+          if (denPaths) {
+            postToFrame(frame, { type: 'PATHS_BROADCAST', version: 1, payload: denPaths });
+          }
+          postToFrame(frame, { type: 'UI_SQUISH_SET', version: 1, payload: { enabled: squishEnabled } });
+          postToFrame(frame, {
+            type: 'MIDI_MAP_MODE',
+            version: 1,
+            payload: {
+              enabled: midiMapMode,
+              armedTargetId: midiArmedTargetId,
+              armedTargetLabel: midiArmedTargetLabel,
+            },
+          });
+        });
+      }
+
+      window.addEventListener('keydown', (event) => {
+        if ((event.code === 'Space' || event.key === ' ') && !event.repeat) {
+          const target = event.target;
+          const tag = String(target?.tagName || '').toUpperCase();
+          if (tag !== 'INPUT' && tag !== 'TEXTAREA' && tag !== 'SELECT' && !target?.isContentEditable) {
+            event.preventDefault();
+            toggleGlobalPlaying();
+            return;
+          }
+        }
+        const isUndo = (event.metaKey || event.ctrlKey) && String(event.key || '').toLowerCase() === 'z';
+        if (!isUndo) return;
+        const target = event.target;
+        const tag = String(target?.tagName || '').toUpperCase();
+        if (tag === 'INPUT' || tag === 'TEXTAREA' || target?.isContentEditable) {
+          return;
+        }
+        event.preventDefault();
+        postToFrame(getActiveFrame(), { type: 'DENARRATOR_UNDO', version: 1 });
+      });
+
+      if (panicBtn) {
+        panicBtn.dataset.state = 'idle';
+        panicBtn.addEventListener('click', (event) => {
+          if (panicResetting) return;
+          if (event.shiftKey) {
+            void triggerPanicKill();
+            return;
+          }
+          if (panicState === 'armed') {
+            void triggerPanicKill();
+            return;
+          }
+          armPanicButton();
+        });
+      }
+
+      document.addEventListener('pointerdown', (event) => {
+        if (panicState !== 'armed' || panicResetting) return;
+        if (event.target === panicBtn) return;
+        disarmPanicButton();
+      });
+      document.addEventListener('pointerdown', (event) => {
+        if (!resetArmed) return;
+        if (event.target === moduleResetBtn) return;
+        disarmReset();
+      });
+
+      async function startGlobalRecording() {
+        if (globalRecActive) return;
+        const tapOk = await ensureHostTapRuntime();
+        if (!tapOk || !hostTapStream || !hostTapAudioContext) {
+          return;
+        }
+        globalRecStream = hostTapStream;
+        globalRecChunksL = [];
+        globalRecChunksR = [];
+        globalRecFrames = 0;
+        const tapSource = hostTapAudioContext.createMediaStreamSource(hostTapStream);
+        const processor = hostTapAudioContext.createScriptProcessor(2048, 2, 2);
+        const sinkGain = hostTapAudioContext.createGain();
+        sinkGain.gain.value = 0;
+        processor.onaudioprocess = (event) => {
+          if (!globalRecActive) return;
+          const input = event.inputBuffer;
+          const l = input.getChannelData(0);
+          const r = input.numberOfChannels > 1 ? input.getChannelData(1) : l;
+          globalRecChunksL.push(new Float32Array(l));
+          globalRecChunksR.push(new Float32Array(r));
+          globalRecFrames += l.length;
+        };
+        tapSource.connect(processor);
+        processor.connect(sinkGain);
+        sinkGain.connect(hostTapAudioContext.destination);
+        globalRecTapSource = tapSource;
+        globalRecProcessor = processor;
+        globalRecSinkGain = sinkGain;
+        globalRecActive = true;
+        globalRecBtn?.setAttribute('aria-pressed', 'true');
+        showMidiToast('Rec sum started');
+      }
+
+      async function stopGlobalRecording() {
+        if (!globalRecActive) return;
+        globalRecActive = false;
+        globalRecBtn?.setAttribute('aria-pressed', 'false');
+        try { globalRecTapSource?.disconnect(); } catch {}
+        try { globalRecProcessor?.disconnect(); } catch {}
+        try { globalRecSinkGain?.disconnect(); } catch {}
+        globalRecTapSource = null;
+        globalRecProcessor = null;
+        globalRecSinkGain = null;
+        globalRecStream = null;
+        if (!globalRecFrames || !globalRecChunksL.length) {
+          globalRecChunksL = [];
+          globalRecChunksR = [];
+          globalRecFrames = 0;
+          return;
+        }
+        const sr = Math.max(1, Math.floor(hostTapAudioContext?.sampleRate || 48000));
+        const channels = 2;
+        const dataBytes = globalRecFrames * channels * 2;
+        const wav = new ArrayBuffer(44 + dataBytes);
+        const dv = new DataView(wav);
+        const write = (offset, text) => {
+          for (let i = 0; i < text.length; i += 1) dv.setUint8(offset + i, text.charCodeAt(i));
+        };
+        write(0, 'RIFF');
+        dv.setUint32(4, 36 + dataBytes, true);
+        write(8, 'WAVE');
+        write(12, 'fmt ');
+        dv.setUint32(16, 16, true);
+        dv.setUint16(20, 1, true);
+        dv.setUint16(22, channels, true);
+        dv.setUint32(24, sr, true);
+        dv.setUint32(28, sr * channels * 2, true);
+        dv.setUint16(32, channels * 2, true);
+        dv.setUint16(34, 16, true);
+        write(36, 'data');
+        dv.setUint32(40, dataBytes, true);
+        let offset = 44;
+        for (let c = 0; c < globalRecChunksL.length; c += 1) {
+          const left = globalRecChunksL[c];
+          const right = globalRecChunksR[c];
+          for (let i = 0; i < left.length; i += 1) {
+            const lv = Math.max(-1, Math.min(1, left[i] || 0));
+            const rv = Math.max(-1, Math.min(1, right[i] || 0));
+            dv.setInt16(offset, lv < 0 ? lv * 0x8000 : lv * 0x7fff, true);
+            offset += 2;
+            dv.setInt16(offset, rv < 0 ? rv * 0x8000 : rv * 0x7fff, true);
+            offset += 2;
+          }
+        }
+        globalRecChunksL = [];
+        globalRecChunksR = [];
+        globalRecFrames = 0;
+        const blob = new Blob([wav], { type: 'audio/wav' });
+        if (!blob || blob.size < 1) return;
+        const stamp = new Date().toISOString().replace(/[:.]/g, '-');
+        await saveBlobWithDialog(blob, `denarrator-master-${stamp}.wav`);
+        void releaseHostTapRuntime();
+        showMidiToast('Rec sum saved');
+      }
+
+      function setGlobalPlaying(nextPlaying) {
+        const willPlay = Boolean(nextPlaying);
+        broadcastToAllFrames({ type: willPlay ? 'DENARRATOR_GLOBAL_PLAY' : 'DENARRATOR_GLOBAL_STOP', version: 1 });
+      }
+
+      function toggleGlobalPlaying() {
+        const isActive = globalPlayState.active.size > 0;
+        setGlobalPlaying(!isActive);
+      }
+
+      if (globalPlayBtn) {
+        globalPlayBtn.addEventListener('click', () => {
+          toggleGlobalPlaying();
+        });
+      }
+
+      if (globalRecBtn) {
+        globalRecBtn.addEventListener('click', async () => {
+          if (globalRecActive) {
+            await stopGlobalRecording();
+          } else {
+            await startGlobalRecording();
+          }
+        });
+      }
+      if (browserBtn) {
+        browserBtn.addEventListener('click', () => {
+          setBrowserOpen(!browserPanelOpen);
+        });
+      }
+      if (browserCloseBtn) {
+        browserCloseBtn.addEventListener('click', () => {
+          setBrowserOpen(false);
+        });
+      }
+      if (browserChooserCancelBtn) {
+        browserChooserCancelBtn.addEventListener('click', () => {
+          browserCloseChooser(null);
+        });
+      }
+      if (browserRefreshBtn) {
+        browserRefreshBtn.addEventListener('click', () => {
+          void browserFetchIndex();
+        });
+      }
+      for (const tabBtn of browserTabButtons) {
+        tabBtn.addEventListener('click', () => {
+          browserState.tab = String(tabBtn.dataset.browserTab || 'CLIPS').toUpperCase();
+          browserPersistUi();
+          browserRenderList();
+        });
+      }
+      if (browserSortBtn) {
+        browserSortBtn.addEventListener('click', () => {
+          const cycle = ['NEW', 'NAME', 'TYPE'];
+          const idx = cycle.indexOf(browserState.sort);
+          browserState.sort = cycle[(idx + 1) % cycle.length];
+          browserPersistUi();
+          browserRenderList();
+        });
+      }
+      if (browserSearchInput) {
+        browserSearchInput.addEventListener('input', () => {
+          browserState.query = String(browserSearchInput.value || '');
+          browserPersistUi();
+          browserRenderList();
+        });
+      }
+      if (squishBtn) {
+        squishBtn.addEventListener('click', () => {
+          setSquishEnabled(!squishEnabled);
+        });
+      }
+      if (moduleResetBtn) {
+        moduleResetBtn.addEventListener('click', () => {
+          if (resetArmed) {
+            disarmReset();
+            triggerActiveModuleReset();
+            return;
+          }
+          armReset();
+        });
+      }
+
+      if (midiBtn) {
+        midiBtn.addEventListener('click', () => {
+          midiPanelOpen = !midiPanelOpen;
+          updateMidiUi();
+        });
+      }
+      if (midiCloseBtn) {
+        midiCloseBtn.addEventListener('click', () => {
+          midiPanelOpen = false;
+          updateMidiUi();
+        });
+      }
+      if (midiMapToggleBtn) {
+        midiMapToggleBtn.addEventListener('click', () => {
+          midiMapMode = !midiMapMode;
+          if (!midiMapMode) clearMidiArmedTarget();
+          updateMidiUi();
+          broadcastMapMode();
+        });
+      }
+      if (midiRefreshBtn) {
+        midiRefreshBtn.addEventListener('click', () => { void refreshMidiDevices(); });
+      }
+      if (midiConnectBtn) {
+        midiConnectBtn.addEventListener('click', () => { void connectMidiDevice(); });
+      }
+      if (midiDisconnectBtn) {
+        midiDisconnectBtn.addEventListener('click', () => { void disconnectMidiDevice(); });
+      }
+      if (midiSaveSeshBtn) {
+        midiSaveSeshBtn.addEventListener('click', () => { void saveMidiSesh(); });
+      }
+      if (midiLoadSeshBtn) {
+        midiLoadSeshBtn.addEventListener('click', () => { void loadMidiSeshFromDialog(); });
+      }
+
+      document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && midiArmedTargetId) {
+          clearMidiArmedTarget();
+          updateMidiUi();
+          return;
+        }
+        if (event.key === 'Escape' && browserChooserResolver) {
+          browserCloseChooser(null);
+          return;
+        }
+        if (event.key === 'Escape' && browserPanelOpen) {
+          setBrowserOpen(false);
+        }
+        if (event.key === 'Escape' && !quitModalBackdrop?.classList.contains('hidden')) {
+          setQuitModalOpen(false);
+        }
+      });
+
+      if (quitSaveBtn) {
+        quitSaveBtn.addEventListener('click', async () => {
+          const suggested = await suggestSessionTitle();
+          if (quitTitleInput) quitTitleInput.value = suggested;
+          quitModalStep1?.classList.add('hidden');
+          quitModalStep2?.classList.remove('hidden');
+          quitTitleInput?.focus();
+          quitTitleInput?.select();
+        });
+      }
+      if (quitDontBtn) {
+        quitDontBtn.addEventListener('click', async () => {
+          const invoke = getInvoke();
+          setQuitModalOpen(false);
+          if (invoke) await invoke('app_quit');
+        });
+      }
+      if (quitCancelBtn) {
+        quitCancelBtn.addEventListener('click', () => {
+          setQuitModalOpen(false);
+        });
+      }
+      if (quitTitleCancelBtn) {
+        quitTitleCancelBtn.addEventListener('click', () => {
+          quitModalStep2?.classList.add('hidden');
+          quitModalStep1?.classList.remove('hidden');
+        });
+      }
+      if (quitTitleOkBtn) {
+        quitTitleOkBtn.addEventListener('click', async () => {
+          const title = String(quitTitleInput?.value || '').trim();
+          if (!title) return;
+          const ok = await saveSessionByTitle(title);
+          if (!ok) return;
+          const invoke = getInvoke();
+          setQuitModalOpen(false);
+          if (invoke) await invoke('app_quit');
+        });
+      }
+
+
+      function canvasMetrics() {
+        const ratio = window.devicePixelRatio || 1;
+        const width = Math.max(1, Math.floor(meterCanvas.clientWidth * ratio));
+        const height = Math.max(1, Math.floor(meterCanvas.clientHeight * ratio));
+        const meterTop = Math.max(Math.round(2 * ratio), Math.round(height * 0.048));
+        const meterBottom = Math.min(height - Math.round(2 * ratio), Math.round(height * 0.964));
+        const meterHeight = Math.max(1, meterBottom - meterTop);
+        const limiterY = Math.round(height * 0.004);
+        const limiterH = Math.max(Math.round(8 * ratio), Math.round(height * 0.03));
+        const limiterPadX = Math.max(Math.round(2 * ratio), Math.round(width * 0.1));
+        const limiterX = limiterPadX;
+        const limiterW = Math.max(Math.round(8 * ratio), width - (limiterPadX * 2));
+        const sliderHitMinX = Math.round(width * 0.16);
+        const sliderHitMaxX = Math.round(width * 0.88);
+        return {
+          ratio,
+          width,
+          height,
+          meterTop,
+          meterBottom,
+          meterHeight,
+          limiterX,
+          limiterY,
+          limiterW,
+          limiterH,
+          sliderHitMinX,
+          sliderHitMaxX,
+        };
+      }
+
+      function updateMasterVolumeFromPointer(clientY) {
+        const rect = meterCanvas.getBoundingClientRect();
+        const y = clientY - rect.top;
+        const { meterTop, meterHeight } = canvasMetrics();
+        const ratio = window.devicePixelRatio || 1;
+        const yPx = y * ratio;
+        const norm = Math.max(0, Math.min(1, (yPx - meterTop) / meterHeight));
+        masterVolume = Math.max(0, Math.min(1, 1 - norm));
+        broadcastMasterSettings();
+      }
+
+      meterCanvas.addEventListener('pointerdown', (event) => {
+        const rect = meterCanvas.getBoundingClientRect();
+        const localX = event.clientX - rect.left;
+        const localY = event.clientY - rect.top;
+        const { sliderHitMinX, sliderHitMaxX } = canvasMetrics();
+        const sliderMinCss = (sliderHitMinX / (window.devicePixelRatio || 1));
+        const sliderMaxCss = (sliderHitMaxX / (window.devicePixelRatio || 1));
+        const inLimiterRect = limiterRect
+          && localX >= limiterRect.x
+          && localX <= limiterRect.x + limiterRect.w
+          && localY >= limiterRect.y
+          && localY <= limiterRect.y + limiterRect.h;
+        if (inLimiterRect) {
+          limiterEnabled = !limiterEnabled;
+          broadcastMasterSettings();
+          return;
+        }
+        const sliderHit = localX >= sliderMinCss && localX <= sliderMaxCss
+          && (!limiterRect || localY >= limiterRect.y + limiterRect.h);
+        if (!sliderHit) {
+          return;
+        }
+        draggingVolume = true;
+        meterCanvas.setPointerCapture(event.pointerId);
+        updateMasterVolumeFromPointer(event.clientY);
+      });
+      meterCanvas.addEventListener('pointermove', (event) => {
+        if (!draggingVolume) return;
+        updateMasterVolumeFromPointer(event.clientY);
+      });
+      const stopVolumeDrag = () => {
+        draggingVolume = false;
+      };
+      meterCanvas.addEventListener('pointerup', stopVolumeDrag);
+      meterCanvas.addEventListener('pointercancel', stopVolumeDrag);
+
+      function drawMeter() {
+        const {
+          ratio,
+          width,
+          height,
+          meterTop,
+          meterBottom,
+          meterHeight,
+          limiterX,
+          limiterY,
+          limiterW,
+          limiterH,
+        } = canvasMetrics();
+        if (meterCanvas.width !== width || meterCanvas.height !== height) {
+          meterCanvas.width = width;
+          meterCanvas.height = height;
+        }
+
+        updateTabPulseVisuals();
+        meterTarget *= 0.965;
+        meterLevel = Math.max(meterTarget, meterLevel * 0.9);
+        meterCtx.clearRect(0, 0, width, height);
+        if (meterSvgReady) {
+          meterCtx.drawImage(meterSvgImage, 0, 0, width, height);
+        }
+
+        const meterCenterX = width * 0.5;
+        const laneGap = Math.max(1, width * 0.06);
+        const barWidth = Math.max(2, width * 0.09);
+        const x1 = Math.round(meterCenterX - laneGap - barWidth);
+        const x2 = Math.round(meterCenterX + laneGap);
+        const x3 = Math.round(width * 0.72);
+        const boosted = Math.max(0, Math.min(1, meterLevel * 2.8));
+        const visualLevel = Math.pow(boosted, 0.33);
+        const activeHeight = Math.max(Math.round(3 * ratio), meterHeight * visualLevel);
+        const activeTop = meterBottom - activeHeight;
+
+        const baseGrad = meterCtx.createLinearGradient(0, meterTop, 0, meterBottom);
+        baseGrad.addColorStop(0, 'rgba(33, 35, 36, 0.78)');
+        baseGrad.addColorStop(0.72, 'rgba(68, 72, 74, 0.55)');
+        baseGrad.addColorStop(1, 'rgba(110, 114, 116, 0.38)');
+        meterCtx.fillStyle = baseGrad;
+        meterCtx.fillRect(x1, meterTop, barWidth, meterHeight);
+        meterCtx.fillRect(x2, meterTop, barWidth, meterHeight);
+
+        const activeGrad = meterCtx.createLinearGradient(0, meterTop, 0, meterBottom);
+        activeGrad.addColorStop(0, 'rgba(231, 163, 95, 0.98)');
+        activeGrad.addColorStop(0.2, 'rgba(120, 107, 92, 0.95)');
+        activeGrad.addColorStop(1, 'rgba(233, 226, 214, 0.88)');
+        meterCtx.fillStyle = activeGrad;
+        meterCtx.fillRect(x1, activeTop, barWidth, activeHeight);
+        meterCtx.fillRect(x2, activeTop, barWidth, activeHeight);
+
+        const markerY = Math.max(meterTop, activeTop);
+        const markerHeight = Math.max(2, Math.round(2 * ratio));
+        meterCtx.fillStyle = 'rgba(245, 246, 246, 0.95)';
+        meterCtx.fillRect(x1 - Math.round(1 * ratio), markerY, barWidth + Math.round(2 * ratio), markerHeight);
+        meterCtx.fillRect(x2 - Math.round(1 * ratio), markerY, barWidth + Math.round(2 * ratio), markerHeight);
+
+        const limBoxW = limiterW;
+        const limBoxH = limiterH;
+        const limX = limiterX;
+        const limY = limiterY;
+        limiterRect = {
+          x: limX / ratio,
+          y: limY / ratio,
+          w: limBoxW / ratio,
+          h: limBoxH / ratio,
+        };
+        meterCtx.fillStyle = limiterEnabled ? 'rgba(231, 163, 95, 0.9)' : 'rgba(88, 92, 94, 0.3)';
+        meterCtx.fillRect(limX, limY, limBoxW, limBoxH);
+        meterCtx.strokeStyle = 'rgba(231, 234, 236, 0.9)';
+        meterCtx.lineWidth = Math.max(1, Math.round(1 * ratio));
+        meterCtx.strokeRect(limX, limY, limBoxW, limBoxH);
+        meterCtx.fillStyle = 'rgba(240, 242, 244, 0.95)';
+        meterCtx.font = `${Math.max(6, Math.round(7 * ratio))}px Avenir Next, Segoe UI, sans-serif`;
+        meterCtx.fillText('LIM', limX + Math.round(2 * ratio), limY + Math.round(8 * ratio));
+
+        meterCtx.strokeStyle = 'rgba(58, 60, 61, 0.7)';
+        meterCtx.lineWidth = Math.max(1, Math.round(2 * ratio));
+        meterCtx.beginPath();
+        meterCtx.moveTo(x3, limY + limBoxH + Math.round(2 * ratio));
+        meterCtx.lineTo(x3, meterBottom);
+        meterCtx.stroke();
+
+        const volY = meterTop + (1 - masterVolume) * meterHeight;
+        const tickHalf = Math.max(5, Math.round(6 * ratio));
+        meterCtx.strokeStyle = 'rgba(34, 35, 36, 0.76)';
+        meterCtx.lineWidth = Math.max(2, Math.round(3 * ratio));
+        meterCtx.beginPath();
+        meterCtx.moveTo(x3 - tickHalf, volY);
+        meterCtx.lineTo(x3 + tickHalf, volY);
+        meterCtx.stroke();
+
+        hostMeterHistory.push(meterLevel);
+        if (hostMeterHistory.length > HOST_METER_HISTORY_MAX) {
+          hostMeterHistory.splice(0, hostMeterHistory.length - HOST_METER_HISTORY_MAX);
+        }
+        const nowMs = Date.now();
+        const frameEveryMs = Math.max(8, Math.round(1000 / Math.max(1, nuklearFps)));
+        if (nuklearSubscribed && nowMs - lastNuklearFrameAt >= frameEveryMs) {
+          lastNuklearFrameAt = nowMs;
+          const frameCount = Math.max(128, Math.min(2048, nuklearFftSize));
+          let payload = null;
+          if (hostTapReady && hostTapAnalyserL && hostTapAnalyserR && hostTapAnalyserF) {
+            const timeL = new Float32Array(frameCount);
+            const timeR = new Float32Array(frameCount);
+            const fftBinCount = Math.max(64, Math.floor(frameCount / 2));
+            const freqBytes = new Uint8Array(fftBinCount);
+            hostTapAnalyserL.fftSize = frameCount;
+            hostTapAnalyserR.fftSize = frameCount;
+            hostTapAnalyserF.fftSize = frameCount;
+            hostTapAnalyserL.getFloatTimeDomainData(timeL);
+            hostTapAnalyserR.getFloatTimeDomainData(timeR);
+            hostTapAnalyserF.getByteFrequencyData(freqBytes);
+            const freq = new Float32Array(fftBinCount);
+            let sumSq = 0;
+            let peak = 0;
+            let dot = 0;
+            let sumL = 0;
+            let sumR = 0;
+            for (let i = 0; i < frameCount; i += 1) {
+              const l = Number(timeL[i] || 0);
+              const r = Number(timeR[i] || 0);
+              sumSq += ((l * l) + (r * r)) * 0.5;
+              dot += l * r;
+              sumL += l * l;
+              sumR += r * r;
+              peak = Math.max(peak, Math.abs(l), Math.abs(r));
+            }
+            for (let i = 0; i < fftBinCount; i += 1) {
+              freq[i] = (freqBytes[i] || 0) / 255;
+            }
+            meterTarget = Math.max(meterTarget, peak);
+            const rms = Math.sqrt(sumSq / Math.max(1, frameCount));
+            const corr = dot / (Math.sqrt(sumL * sumR) + 1e-9);
+            payload = {
+              sr: hostTapAudioContext?.sampleRate || 48000,
+              fftSize: frameCount,
+              timeL: Array.from(timeL),
+              timeR: Array.from(timeR),
+              freq: Array.from(freq),
+              rms,
+              peak,
+              corr: Math.max(-1, Math.min(1, corr)),
+              tsMs: nowMs,
+            };
+          } else {
+            const time = new Float32Array(frameCount);
+            const start = Math.max(0, hostMeterHistory.length - frameCount);
+            const source = hostMeterHistory.slice(start);
+            for (let i = 0; i < frameCount; i += 1) {
+              const idx = Math.floor((i / Math.max(1, frameCount - 1)) * Math.max(0, source.length - 1));
+              const v = Number(source[idx] || 0);
+              time[i] = Math.max(-1, Math.min(1, (v * 2) - 1));
+            }
+            const freqBins = Math.max(64, Math.floor(frameCount / 2));
+            const freq = new Float32Array(freqBins);
+            for (let i = 0; i < freqBins; i += 1) {
+              const f = i / Math.max(1, freqBins - 1);
+              const falloff = 1 - f;
+              const noise = Math.random() * 0.04;
+              freq[i] = Math.max(0, Math.min(1, meterLevel * (0.12 + falloff * 0.88) + noise));
+            }
+            payload = {
+              sr: 48000,
+              fftSize: frameCount,
+              timeL: Array.from(time),
+              timeR: Array.from(time),
+              freq: Array.from(freq),
+              rms: meterLevel * 0.7,
+              peak: meterLevel,
+              corr: 1,
+              tsMs: nowMs,
+            };
+          }
+          postToFrame(nuklearFrame, {
+            type: 'NUKLEAR_FRAME',
+            version: 1,
+            payload,
+          });
+        }
+
+        requestAnimationFrame(drawMeter);
+      }
+
+      (async () => {
+        const invoke = getInvoke();
+        if (invoke) {
+          try {
+            denPaths = await ensureDenarratorPaths();
+          } catch {
+            // Continue without path bootstrap in web fallback mode.
+          }
+        }
+        broadcastMasterSettings();
+        browserRestoreUi();
+        for (const caps of browserDefaultsCaps) {
+          browserCapsRegistry.set(String(caps.moduleId || '').toLowerCase(), caps);
+        }
+        browserRenderList();
+        installTactileButtons(document);
+        applyGlobalTactileToFrames();
+        const savedSquish = (() => {
+          try { return localStorage.getItem('denarrator.ui.squish'); } catch { return null; }
+        })();
+        setSquishEnabled(savedSquish !== '0');
+        updateGlobalPlayIndicator();
+        void ensureHostAudioRuntime();
+        void setupTauriMidiListener();
+        try {
+          const listen = window.__TAURI__?.event?.listen;
+          if (typeof listen === 'function') {
+            await listen('denarrator://quit-requested', () => {
+              void requestQuitFlow();
+            });
+          }
+        } catch {}
+        void refreshMidiDevices();
+        updateMidiUi();
+        broadcastMapMode();
+        broadcastPathsToAllFrames();
+        try {
+          const savedEq = localStorage.getItem('denarrator.izer.eq.lazy') || localStorage.getItem('denarrator.izer.groups');
+          if (savedEq) {
+            const parsed = JSON.parse(savedEq);
+            postToFrame(lazyFrame, {
+              type: 'LAZY_IZER_EQ_SET',
+              version: 1,
+              payload: parsed,
+            });
+          }
+        } catch {}
+        requestAnimationFrame(drawMeter);
+      })();
+
+      window.setTimeout(() => {
+        if (!splashEl) return;
+        splashEl.classList.add('hidden');
+        window.setTimeout(() => {
+          splashEl.remove();
+        }, 260);
+      }, 1000);
+
+      window.addEventListener('beforeunload', (event) => {
+        if (!isAnyDirty()) return;
+        event.preventDefault();
+        event.returnValue = '';
+      });
+    </script>
+  </body>
+</html>

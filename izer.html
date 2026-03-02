@@ -1,0 +1,295 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>=izer v3</title>
+    <style>
+      :root {
+        --bg: #f4f1e9;
+        --panel: rgba(255,255,255,0.46);
+        --line: rgba(47,49,50,0.36);
+        --ink: #2f3132;
+        --soft: rgba(47,49,50,0.72);
+        --inactive: rgba(47,49,50,0.25);
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        padding: 10px;
+        background: var(--bg);
+        color: var(--ink);
+        font-family: "Avenir Next Condensed", "Arial Narrow", sans-serif;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+      }
+      main { display: grid; gap: 8px; }
+      .panel { border: 1px solid var(--line); background: var(--panel); padding: 8px; }
+      .row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+      .grow { flex: 1 1 auto; }
+      button, select, input[type="range"] {
+        border: 1px solid var(--line);
+        border-radius: 0;
+        background: rgba(255,255,255,0.58);
+        color: var(--ink);
+        font: inherit;
+        text-transform: uppercase;
+      }
+      button, select { height: 28px; padding: 0 8px; }
+      input[type="range"] {
+        appearance: none;
+        -webkit-appearance: none;
+        border: 0;
+        background: transparent;
+        height: 34px;
+        padding: 0 14px;
+      }
+      input[type="range"]::-webkit-slider-runnable-track {
+        height: 2px;
+        border: 1px solid rgba(47,49,50,0.65);
+        background: rgba(47,49,50,0.45);
+      }
+      input[type="range"]::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 12px;
+        height: 18px;
+        margin-top: -9px;
+        border: 0;
+        background: center / contain no-repeat url("./assets/slider-thumb.svg");
+      }
+      input[type="range"]::-moz-range-track {
+        height: 2px;
+        border: 1px solid rgba(47,49,50,0.65);
+        background: rgba(47,49,50,0.45);
+      }
+      input[type="range"]::-moz-range-thumb {
+        width: 12px;
+        height: 18px;
+        border: 0;
+        border-radius: 0;
+        background: center / contain no-repeat url("./assets/slider-thumb.svg");
+      }
+      .target button[aria-pressed="true"] { background: rgba(47,49,50,0.14); }
+      .slot-grid {
+        margin-top: 8px;
+        display: grid;
+        gap: 6px;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .slot {
+        border: 1px solid var(--line);
+        background: rgba(255,255,255,0.3);
+        padding: 6px;
+        display: grid;
+        gap: 4px;
+      }
+      .segments {
+        margin-top: 8px;
+        display: grid;
+        gap: 6px;
+      }
+      .seg {
+        border: 1px solid var(--line);
+        background: rgba(255,255,255,0.3);
+        padding: 6px;
+        opacity: 0.45;
+      }
+      .seg.active {
+        opacity: 1;
+        border-color: rgba(47,49,50,0.76);
+        background: rgba(255,255,255,0.58);
+      }
+      .seg .label-row {
+        display: flex;
+        justify-content: space-between;
+        font-size: 11px;
+        color: var(--soft);
+      }
+      .seg input[disabled] { opacity: 0.6; pointer-events: none; }
+      .lock-badge {
+        border: 1px solid var(--line);
+        background: rgba(255,255,255,0.52);
+        padding: 0 6px;
+        height: 24px;
+        line-height: 22px;
+        font-size: 11px;
+        color: var(--soft);
+      }
+      .lock-badge.on {
+        border-color: rgba(138,58,45,0.45);
+        color: #8a3a2d;
+      }
+      .bands16 {
+        margin-top: 6px;
+        border: 1px solid var(--line);
+        padding: 8px;
+        background: rgba(255,255,255,0.3);
+        display: grid;
+        gap: 6px;
+        grid-template-columns: repeat(16, minmax(0, 1fr));
+        align-items: end;
+      }
+      .bcol { display: grid; gap: 4px; justify-items: center; }
+      .eq-vwrap {
+        position: relative;
+        width: 46px;
+        height: 188px;
+      }
+      .eq-vtrack {
+        position: absolute;
+        left: 50%;
+        top: 8px;
+        width: 16px;
+        height: 172px;
+        transform: translateX(-50%);
+        cursor: ns-resize;
+        touch-action: none;
+      }
+      .eq-vrail {
+        position: absolute;
+        left: 50%;
+        top: 0;
+        width: 2px;
+        height: 100%;
+        transform: translateX(-50%);
+        background: rgba(47,49,50,0.45);
+        border: 1px solid rgba(47,49,50,0.65);
+      }
+      .eq-vthumb {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        width: 12px;
+        height: 18px;
+        transform: translate(-50%, -50%);
+        background: center / contain no-repeat url("./assets/slider-thumb.svg");
+        pointer-events: none;
+      }
+      .eq-vwrap.eq-active .eq-vthumb { filter: brightness(1.05); }
+      .hz { font-size: 9px; color: var(--soft); }
+      .db { font-size: 9px; color: var(--ink); min-height: 10px; }
+      .status { font-size: 11px; color: var(--soft); }
+      .editor-lock {
+        position: absolute;
+        inset: 0;
+        background: rgba(244,241,233,0.44);
+        border: 1px dashed rgba(138,58,45,0.45);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        pointer-events: all;
+      }
+      .editor-lock.on { display: flex; }
+      .prompt-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(20,20,20,0.25);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+      }
+      .prompt-overlay.show { display: flex; }
+      .prompt-box {
+        width: min(420px, calc(100vw - 24px));
+        border: 1px solid var(--line);
+        background: var(--bg);
+        padding: 10px;
+        display: grid;
+        gap: 8px;
+      }
+      .prompt-box input {
+        height: 30px;
+        border: 1px solid var(--line);
+        border-radius: 0;
+        background: rgba(255,255,255,0.7);
+        color: var(--ink);
+        font: inherit;
+        padding: 0 8px;
+        text-transform: uppercase;
+      }
+      @media (max-width: 1120px) {
+        .bands16 { grid-template-columns: repeat(8, minmax(0, 1fr)); }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <section class="panel">
+        <div class="row" style="justify-content:space-between;">
+          <div class="row target">
+            <b>=izer v3</b>
+            <button id="targetLazyBtn" type="button" aria-pressed="true">Target: Lazy Out</button>
+            <button id="targetMasterBtn" type="button" aria-pressed="false">Target: Master Out</button>
+          </div>
+          <span id="modeInfo" class="status">Mode: Home</span>
+        </div>
+
+        <div class="slot-grid">
+          <div class="slot">
+            <b>P2</b>
+            <select id="p2Select"></select>
+          </div>
+          <div class="slot">
+            <b>P3</b>
+            <select id="p3Select"></select>
+          </div>
+        </div>
+
+        <div class="segments">
+          <div id="segP12" class="seg active">
+            <div class="label-row"><span>P1 → P2</span><span id="valP12">0%</span></div>
+            <input id="sliderP12" type="range" min="0" max="100" step="1" value="0" />
+          </div>
+          <div id="segP23" class="seg inactive">
+            <div class="label-row"><span>P2 → P3</span><span id="valP23">0%</span></div>
+            <input id="sliderP23" type="range" min="0" max="100" step="1" value="0" disabled />
+          </div>
+          <div id="segP31" class="seg inactive">
+            <div class="label-row"><span>P3 → P1</span><span id="valP31">0%</span></div>
+            <input id="sliderP31" type="range" min="0" max="100" step="1" value="0" disabled />
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="row" style="justify-content:space-between;">
+          <div class="row">
+            <span class="status">Edit: P1 Only</span>
+            <span id="lockBadge" class="lock-badge">Unlocked</span>
+          </div>
+          <div class="row">
+            <select id="editorPresetSelect" title="Editor Preset"></select>
+            <button id="saveBtn" type="button">Save</button>
+            <button id="saveAsBtn" type="button">Save As</button>
+            <button id="delUserBtn" type="button">Del User</button>
+            <button id="resetBtn" type="button">Reset</button>
+          </div>
+        </div>
+        <div style="position:relative;">
+          <div id="bands16" class="bands16"></div>
+          <div id="editorLock" class="editor-lock"><b>Locked (Morph)</b></div>
+        </div>
+      </section>
+
+      <section class="panel row" style="justify-content:space-between;">
+        <span id="presetInfo" class="status">P1: HOME | P2: WARM | P3: AIR</span>
+        <span id="status" class="status">Ready.</span>
+      </section>
+    </main>
+
+    <div id="presetPrompt" class="prompt-overlay" aria-hidden="true">
+      <div class="prompt-box">
+        <b>Preset Name</b>
+        <input id="presetPromptInput" type="text" maxlength="48" />
+        <div class="row" style="justify-content:flex-end;">
+          <button id="presetPromptCancel" type="button">Cancel</button>
+          <button id="presetPromptOk" type="button">Ok</button>
+        </div>
+      </div>
+    </div>
+
+    <script type="module" src="./izer.js"></script>
+  </body>
+</html>

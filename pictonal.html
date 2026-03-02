@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pictonal</title>
+    <style>
+      :root { --bg:#f6f3ea; --ink:#2f3132; --soft:#55585a; --line:#b7b4ab; --accent:#ebdbc2; }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background: radial-gradient(circle at top right, #faf7ef 0%, var(--bg) 65%);
+        color: var(--ink);
+        font-family: "Engebrechtre", "Avenir Next", "Segoe UI", sans-serif;
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+      }
+      main { display: grid; grid-template-rows: auto auto auto minmax(0,1fr); gap: 6px; padding: 8px 12px 10px; min-height: 100vh; }
+      .panel { border:1px solid var(--line); background: rgba(255,255,255,0.2); padding: 6px; }
+      .row { display:flex; flex-wrap:wrap; align-items:center; gap:6px; }
+      .grid { display:grid; grid-template-columns: repeat(6,minmax(120px,1fr)); gap:6px; }
+      button,input,select { border:1px solid var(--ink); background:transparent; color:var(--ink); font:inherit; font-size:11px; text-transform:uppercase; padding:5px 8px; }
+      button { cursor:pointer; }
+      button[aria-pressed="true"] { background:var(--ink); color:var(--bg); }
+      button:active:not(:disabled) { background-color: rgba(47,49,50,0.14) !important; }
+      .toggle { display:inline-flex; align-items:center; gap:6px; color:var(--ink); }
+      .toggle input {
+        appearance:none;
+        -webkit-appearance:none;
+        width:40px;
+        height:18px;
+        margin:0;
+        border:0;
+        background:center/contain no-repeat url("./assets/checkbox_inactive.svg");
+        cursor:pointer;
+      }
+      .toggle input:checked { background-image:url("./assets/checkbox_active.svg"); }
+      input[type="range"] { appearance:none; -webkit-appearance:none; background:transparent; height:18px; border:0; padding:0; }
+      input[type="range"]::-webkit-slider-runnable-track { height:2px; background:rgba(47,49,50,0.45); border:1px solid rgba(47,49,50,0.65); }
+      input[type="range"]::-webkit-slider-thumb { -webkit-appearance:none; appearance:none; width:12px; height:18px; margin-top:-9px; border:0; background:center/contain no-repeat url("./assets/slider-thumb.svg"); }
+      input[type="range"]::-moz-range-track { height:2px; background:rgba(47,49,50,0.45); border:1px solid rgba(47,49,50,0.65); }
+      input[type="range"]::-moz-range-thumb { width:12px; height:18px; border:0; border-radius:0; background:center/contain no-repeat url("./assets/slider-thumb.svg"); }
+      .value { color: var(--soft); font-size: 11px; }
+      #waveCanvas { width:100%; height:88px; border:1px solid var(--line); background:rgba(255,255,255,0.45); }
+      .clips { border:1px solid var(--line); padding:6px; display:grid; grid-template-columns: repeat(4, minmax(180px,1fr)); gap:6px; overflow:auto; }
+      .clip { border:1px solid var(--line); background:rgba(255,255,255,0.35); padding:6px; display:grid; gap:6px; }
+      .clip.active { border-color:#2f3132; background: color-mix(in srgb, var(--accent) 40%, white 60%); }
+      .thumb { width:100%; aspect-ratio: 16 / 9; object-fit: cover; border:1px solid var(--line); background:#fff; }
+      .muted { color: var(--soft); font-size:11px; }
+      .gridWrap { display:grid; grid-template-columns: auto minmax(280px,1fr); gap:10px; align-items:start; }
+      #drawGridCanvas { width:640px; max-width:100%; height:auto; border:1px solid var(--line); background:#fff; image-rendering: pixelated; }
+      .palette { display:grid; grid-template-columns: repeat(8, minmax(32px, 1fr)); gap:6px; }
+      .swatch { position:relative; border:1px solid var(--ink); height:28px; cursor:pointer; }
+      .swatch.active { outline:2px solid var(--ink); outline-offset:1px; }
+      .swatch.empty::after { content:"×"; position:absolute; inset:0; display:grid; place-items:center; color:rgba(0,0,0,.45); font-weight:700; }
+      .subgrid { display:grid; grid-template-columns: repeat(6, minmax(120px,1fr)); gap:6px; }
+      @media (max-width:1200px){ .grid{grid-template-columns: repeat(3,minmax(120px,1fr));} .clips{grid-template-columns:1fr 1fr;} }
+      @media (max-width:700px){ .clips{grid-template-columns:1fr;} .gridWrap{grid-template-columns:1fr;} .subgrid{grid-template-columns: repeat(2,minmax(120px,1fr));} .palette{grid-template-columns: repeat(6,minmax(32px,1fr));}}
+    </style>
+  </head>
+  <body>
+    <main>
+      <section class="panel">
+        <div class="row" style="justify-content:space-between;">
+          <strong>Pictonal</strong>
+          <span id="clipCount" class="value">0 clips</span>
+        </div>
+        <div class="row" style="margin-top:6px;">
+          <button id="loadImgBtn" type="button">LOAD IMG</button>
+          <button id="renderBtn" type="button">RENDER</button>
+          <button id="playBtn" type="button">PLAY</button>
+          <label class="toggle"><input id="loopBtn" type="checkbox" checked /> Loop: </label>
+          <button id="saveBtn" type="button">SAVE WAV</button>
+          <button id="sendBtn" type="button">TO LAZY</button>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="grid">
+          <label>MODE
+            <select id="modeSel">
+              <option value="GRAM">GRAM</option>
+              <option value="SCAN">SCAN</option>
+              <option value="RGB_OSC">RGB_OSC</option>
+            </select>
+          </label>
+          <label>DURATION <span id="durationVal" class="value">3.0S</span>
+            <input id="durationInput" type="range" min="50" max="800" step="10" value="300" />
+          </label>
+          <label>SMOOTH <span id="smoothVal" class="value">12MS</span>
+            <input id="smoothInput" type="range" min="0" max="80" step="1" value="12" />
+          </label>
+          <label>NORMALIZE
+            <button id="normalizeBtn" type="button" aria-pressed="true">ON</button>
+          </label>
+          <label>FFT QUALITY
+            <select id="fftSel">
+              <option value="LOW">LOW</option>
+              <option value="MID" selected>MID</option>
+              <option value="HIGH">HIGH</option>
+            </select>
+          </label>
+          <label>CLIP OVERRIDE
+            <button id="overrideBtn" type="button" aria-pressed="false">OFF</button>
+          </label>
+          <label>PRESET
+            <select id="presetSel"></select>
+          </label>
+          <label>APPLY
+            <button id="presetApplyBtn" type="button">APPLY PRESET</button>
+          </label>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="gridWrap">
+          <canvas id="drawGridCanvas" width="640" height="320"></canvas>
+          <div style="display:grid; gap:8px;">
+            <div class="subgrid">
+              <label>SOURCE
+                <select id="gridSourceSel">
+                  <option value="IMAGE">IMAGE</option>
+                  <option value="GRID">GRID</option>
+                  <option value="BOTH">BOTH</option>
+                </select>
+              </label>
+              <label>COMPOSE
+                <select id="gridComposeSel">
+                  <option value="OVERLAY">OVERLAY</option>
+                  <option value="REPLACE">REPLACE</option>
+                </select>
+              </label>
+              <label>AMOUNT <span id="gridAmountVal" class="value">70%</span>
+                <input id="gridAmountInput" type="range" min="0" max="100" step="1" value="70" />
+              </label>
+              <label>GRID MAP
+                <select id="gridMapSel">
+                  <option value="COLOR">COLOR</option>
+                  <option value="TONE">TONE</option>
+                </select>
+              </label>
+              <label>PALETTE SIZE
+                <select id="gridPaletteModeSel">
+                  <option value="8">8</option>
+                  <option value="12">12</option>
+                  <option value="16">16</option>
+                </select>
+              </label>
+              <label>TOOL
+                <select id="gridToolSel">
+                  <option value="PEN">PEN</option>
+                  <option value="ERASE">ERASE</option>
+                </select>
+              </label>
+            </div>
+            <div class="row">
+              <button id="gridClearBtn" type="button">CLEAR</button>
+              <button id="gridInvertBtn" type="button">INVERT</button>
+              <button id="gridRandomBtn" type="button">RANDOM</button>
+              <select id="gridPresetSel"></select>
+              <button id="gridPresetApplyBtn" type="button">APPLY GRID PRESET</button>
+            </div>
+            <div id="gridPalette" class="palette"></div>
+            <div id="gridMapHint" class="muted">COLOR MAP ACTIVE</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <canvas id="waveCanvas" width="1400" height="220"></canvas>
+        <div class="row" style="justify-content:space-between; margin-top:6px;">
+          <span id="renderInfo" class="value">TEMP: NONE</span>
+          <span id="status" class="muted">READY</span>
+        </div>
+      </section>
+
+      <section id="clips" class="clips"></section>
+    </main>
+
+    <input id="imgInput" type="file" accept="image/png,image/jpeg,image/webp" hidden />
+    <script type="module" src="./pictonal.js"></script>
+  </body>
+</html>

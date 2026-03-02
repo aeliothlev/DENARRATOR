@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Projektor</title>
+    <style>
+      :root { --bg:#f6f3ea; --ink:#2f3132; --line:#b7b4ab; --soft:#55585a; --accent:#ebdbc2; }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background: radial-gradient(circle at top right, #faf7ef 0%, var(--bg) 65%);
+        color: var(--ink);
+        font-family: "Engebrechtre", "Avenir Next", "Segoe UI", sans-serif;
+        font-size: 12px;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+      main { display:grid; grid-template-rows:auto auto auto auto minmax(0,1fr); gap:6px; padding:8px 12px 10px; min-height:100vh; }
+      .panel { border:1px solid var(--line); background: rgba(255,255,255,0.2); padding:6px; }
+      .row { display:flex; flex-wrap:wrap; gap:6px; align-items:center; }
+      .grid { display:grid; grid-template-columns: repeat(6, minmax(120px,1fr)); gap:6px; }
+      .modeGrid { display:grid; grid-template-columns: repeat(7,minmax(110px,1fr)); gap:6px; }
+      button,input,select { border:1px solid var(--ink); background:transparent; color:var(--ink); font:inherit; font-size:11px; text-transform:uppercase; padding:5px 8px; }
+      button { cursor:pointer; }
+      button[aria-pressed="true"] { background:var(--ink); color:var(--bg); }
+      .toggle { display:inline-flex; align-items:center; gap:6px; color:var(--ink); }
+      .toggle input {
+        appearance:none;
+        -webkit-appearance:none;
+        width:40px;
+        height:18px;
+        margin:0;
+        border:0;
+        background:center/contain no-repeat url("./assets/checkbox_inactive.svg");
+        cursor:pointer;
+      }
+      .toggle input:checked { background-image:url("./assets/checkbox_active.svg"); }
+      input[type="range"] { appearance:none; -webkit-appearance:none; background:transparent; border:0; padding:0; height:18px; }
+      input[type="range"]::-webkit-slider-runnable-track { height:2px; background:rgba(47,49,50,0.45); border:1px solid rgba(47,49,50,0.65); }
+      input[type="range"]::-webkit-slider-thumb { -webkit-appearance:none; appearance:none; width:12px; height:18px; margin-top:-9px; border:0; background:center/contain no-repeat url("./assets/slider-thumb.svg"); }
+      input[type="range"]::-moz-range-track { height:2px; background:rgba(47,49,50,0.45); border:1px solid rgba(47,49,50,0.65); }
+      input[type="range"]::-moz-range-thumb { width:12px; height:18px; border:0; border-radius:0; background:center/contain no-repeat url("./assets/slider-thumb.svg"); }
+      .value,.muted { color:var(--soft); font-size:11px; }
+      .slots { display:grid; grid-template-columns: repeat(4, minmax(180px,1fr)); gap:6px; }
+      .slot { border:1px solid var(--line); background: rgba(255,255,255,0.35); padding:6px; display:grid; gap:6px; }
+      .slot.active { border-color:var(--ink); background: color-mix(in srgb, var(--accent) 40%, white 60%); }
+      .hidden { display:none !important; }
+      #waveCanvas { width:100%; height:88px; border:1px solid var(--line); background: rgba(255,255,255,0.45); }
+      @media (max-width:1200px){ .grid{grid-template-columns:repeat(3,minmax(120px,1fr));} .modeGrid{grid-template-columns:repeat(3,minmax(120px,1fr));} .slots{grid-template-columns:1fr 1fr;} }
+      @media (max-width:700px){ .slots{grid-template-columns:1fr;} }
+    </style>
+  </head>
+  <body>
+    <main>
+      <section class="panel">
+        <div class="row" style="justify-content:space-between;">
+          <strong>Projektor</strong>
+          <span id="status" class="muted">Ready</span>
+        </div>
+        <div class="row" style="margin-top:6px;">
+          <button id="renderBtn" type="button">RENDER</button>
+          <button id="playBtn" type="button">PLAY</button>
+          <label class="toggle"><input id="loopBtn" type="checkbox" /> Loop: </label>
+          <button id="saveBtn" type="button">SAVE WAV</button>
+          <button id="sendBtn" type="button">TO LAZY</button>
+          <span id="renderInfo" class="value">TEMP: NONE</span>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="slots" id="slots"></div>
+      </section>
+
+      <section class="panel">
+        <div class="grid">
+          <label>Mode
+            <select id="modeSel">
+              <option value="TIME">TIME</option>
+              <option value="SPECTRAL">SPEC</option>
+              <option value="PROJECT">PROJ</option>
+            </select>
+          </label>
+          <label>Len
+            <select id="lenSel">
+              <option value="MEAN">MEAN</option>
+              <option value="MAX">MAX</option>
+              <option value="MANUAL">MAN</option>
+            </select>
+          </label>
+          <label>Dur <span id="durVal" class="value">4.0S</span>
+            <input id="durInput" type="range" min="50" max="1600" step="10" value="400" />
+          </label>
+          <label>Seed
+            <input id="seedInput" type="number" step="1" value="1234" />
+          </label>
+          <label>Reseed
+            <button id="reseedBtn" type="button">Reseed</button>
+          </label>
+          <label>Norm
+            <button id="normBtn" type="button" aria-pressed="true">On</button>
+          </label>
+          <label>Airbag
+            <button id="airbagBtn" type="button" aria-pressed="true">On</button>
+          </label>
+          <label>Preset
+            <select id="presetSel"></select>
+          </label>
+          <label>Apply
+            <button id="presetApplyBtn" type="button">Apply Preset</button>
+          </label>
+          <label>Save As
+            <button id="presetSaveAsBtn" type="button">Save User</button>
+          </label>
+          <label>Delete
+            <button id="presetDeleteBtn" type="button">Delete User</button>
+          </label>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div id="timeControls" class="modeGrid">
+          <label>Src
+            <select id="timeSrcSel"><option value="A">A</option><option value="AB">A+B</option><option value="DIAG">A-DIAG</option></select>
+          </label>
+          <label>Warp <span id="timeWarpVal" class="value">25%</span>
+            <input id="timeWarpInput" type="range" min="0" max="100" step="1" value="25" />
+          </label>
+          <label>Scram <span id="timeScramVal" class="value">85%</span>
+            <input id="timeScramInput" type="range" min="0" max="100" step="1" value="85" />
+          </label>
+          <label>Grain <span id="timeGrainVal" class="value">22MS</span>
+            <input id="timeGrainInput" type="range" min="5" max="250" step="1" value="22" />
+          </label>
+          <label>XFade <span id="timeXfadeVal" class="value">9MS</span>
+            <input id="timeXfadeInput" type="range" min="0" max="30" step="1" value="9" />
+          </label>
+          <label>Rev
+            <select id="timeRevSel"><option value="OFF">OFF</option><option value="2ND_SL">2ND SL</option><option value="2ND_ROW">2ND ROW</option></select>
+          </label>
+          <label>Smooth <span id="timeSmoothVal" class="value">15%</span>
+            <input id="timeSmoothInput" type="range" min="0" max="100" step="1" value="15" />
+          </label>
+        </div>
+
+        <div id="specControls" class="modeGrid hidden">
+          <label>Frame <span id="specFrameVal" class="value">40MS</span>
+            <input id="specFrameInput" type="range" min="10" max="100" step="1" value="40" />
+          </label>
+          <label>FFT
+            <select id="specFftSel"><option>1024</option><option selected>2048</option><option>4096</option></select>
+          </label>
+          <label>Hop
+            <select id="specHopSel"><option value="QTR">1/4</option><option value="HALF">1/2</option></select>
+          </label>
+          <label>Mag
+            <select id="specMagSel"><option>A</option><option>B</option><option>C</option><option>D</option><option>MIX</option></select>
+          </label>
+          <label>Phase
+            <select id="specPhaseSel"><option>A</option><option>B</option><option>C</option><option>D</option><option>RAND</option><option>ROT</option></select>
+          </label>
+          <label>Rot° <span id="specRotVal" class="value">0°</span>
+            <input id="specRotInput" type="range" min="-180" max="180" step="1" value="0" />
+          </label>
+          <label>Morph <span id="specMorphVal" class="value">0%</span>
+            <input id="specMorphInput" type="range" min="0" max="100" step="1" value="0" />
+          </label>
+          <label>BandSw <span id="specBandSwVal" class="value">0%</span>
+            <input id="specBandSwInput" type="range" min="0" max="100" step="1" value="0" />
+          </label>
+          <label>Tilt <span id="specTiltVal" class="value">0%</span>
+            <input id="specTiltInput" type="range" min="-100" max="100" step="1" value="0" />
+          </label>
+          <label>TProt <span id="specTprotVal" class="value">25%</span>
+            <input id="specTprotInput" type="range" min="0" max="100" step="1" value="25" />
+          </label>
+          <label>Blur <span id="specBlurVal" class="value">30%</span>
+            <input id="specBlurInput" type="range" min="0" max="100" step="1" value="30" />
+          </label>
+          <label>Band Scale
+            <select id="specBandScaleSel"><option value="BARK">BARK</option><option value="MEL">MEL</option><option value="LOG">LOG</option></select>
+          </label>
+          <label>Band Dbg
+            <button id="specBandDbgBtn" type="button" aria-pressed="false">Off</button>
+          </label>
+        </div>
+        <div id="specBandDebugWrap" class="hidden" style="margin-top:8px; display:grid; gap:6px;">
+          <canvas id="specBandDebugCanvas" width="640" height="44" style="width:100%; height:44px; border:1px solid var(--line); background:#f5f2eb;"></canvas>
+          <pre id="specBandDebugText" style="margin:0; max-height:110px; overflow:auto; border:1px solid var(--line); padding:6px; background:rgba(255,255,255,0.4); font-family:ui-monospace, SFMono-Regular, Menlo, monospace; font-size:10px; text-transform:none; letter-spacing:0;"></pre>
+        </div>
+
+        <div id="projControls" class="modeGrid hidden">
+          <label>In
+            <select id="projInSel"><option value="A">A</option><option value="AB">A+B</option></select>
+          </label>
+          <label>Basis
+            <select id="projBasisSel"><option value="SINBANK">SIN</option><option value="WAVEBANK">WAV</option><option value="PCA_FRAMES">PCA</option></select>
+          </label>
+          <label>K <span id="projKVal" class="value">16</span>
+            <input id="projKInput" type="range" min="1" max="64" step="1" value="16" />
+          </label>
+          <label>Win <span id="projWinVal" class="value">80MS</span>
+            <input id="projWinInput" type="range" min="20" max="200" step="1" value="80" />
+          </label>
+          <label>Out
+            <select id="projOutSel"><option value="PROJECT">PROJ</option><option value="RESIDUAL">RES</option><option value="MIX">MIX</option></select>
+          </label>
+          <label>Mix <span id="projMixVal" class="value">50%</span>
+            <input id="projMixInput" type="range" min="0" max="100" step="1" value="50" />
+          </label>
+          <label>Ortho
+            <button id="projOrthoBtn" type="button" aria-pressed="false">Off</button>
+          </label>
+          <label>Smooth <span id="projSmoothVal" class="value">25%</span>
+            <input id="projSmoothInput" type="range" min="0" max="100" step="1" value="25" />
+          </label>
+        </div>
+      </section>
+
+      <section class="panel">
+        <canvas id="waveCanvas" width="1400" height="220"></canvas>
+      </section>
+    </main>
+
+    <input id="fileInput" type="file" accept="audio/*" hidden />
+    <script type="module" src="./projektor.js"></script>
+  </body>
+</html>

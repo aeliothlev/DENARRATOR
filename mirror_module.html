@@ -1,0 +1,239 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mirror Module</title>
+    <style>
+      :root {
+        --bg: #f6f3ea;
+        --ink: #2f3132;
+        --soft: #55585a;
+        --line: #b7b4ab;
+        --panel: rgba(228, 223, 211, 0.58);
+        --alert: #8a3a2d;
+        --font-ui: "Engebrechtre", "Avenir Next", "Helvetica Neue", sans-serif;
+        --font-head: "TT Modernoir DemiBold", "TT Modernoir Bold", "Engebrechtre", "Avenir Next", "Helvetica Neue", sans-serif;
+      }
+      * { box-sizing: border-box; }
+      html, body { margin: 0; height: 100%; }
+      body {
+        font-family: var(--font-ui);
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: var(--ink);
+        background: radial-gradient(circle at top right, #faf7ef 0%, var(--bg) 65%);
+        display: grid;
+        grid-template-rows: auto auto 1fr;
+        gap: 6px;
+        padding: 7px;
+        font-size: 11px;
+      }
+      .row {
+        border: 1px solid var(--line);
+        background: transparent;
+        padding: 6px;
+        display: grid;
+        gap: 6px;
+      }
+      .title { font-size: 14px; margin: 0; font-family: var(--font-head); }
+      .subtitle { margin: 0; color: var(--soft); font-size: 10px; }
+      .grid { display: grid; gap: 6px; }
+      .grid-top { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+      .grid-bottom { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+      .card { border: 1px solid var(--line); background: var(--panel); padding: 6px; display: grid; gap: 6px; }
+      .inline { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+      button, input, select {
+        border: 1px solid var(--ink);
+        background: transparent;
+        color: var(--ink);
+        padding: 4px 7px;
+        font: inherit;
+        font-size: 10px;
+        text-transform: uppercase;
+      }
+      button { cursor: pointer; }
+      button:active:not(:disabled) { background-color: rgba(47, 49, 50, 0.14) !important; }
+      button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+      button:disabled { opacity: 0.45; cursor: not-allowed; }
+      .toggle {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        color: var(--ink);
+      }
+      .toggle input {
+        appearance: none;
+        -webkit-appearance: none;
+        width: 40px;
+        height: 18px;
+        margin: 0;
+        border: 0;
+        background: center / contain no-repeat url("./assets/checkbox_inactive.svg");
+        cursor: pointer;
+      }
+      .toggle input:checked {
+        background-image: url("./assets/checkbox_active.svg");
+      }
+      #playBtn {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+      }
+      #playBtn::before {
+        content: "";
+        width: 14px;
+        height: 14px;
+        flex: 0 0 14px;
+        background: center / contain no-repeat url("./assets/transport_play.svg");
+      }
+      #playBtn[aria-pressed="true"]::before {
+        background-image: url("./assets/transport_play_active.svg");
+      }
+      input[type="range"] {
+        width: 100%;
+        appearance: none;
+        -webkit-appearance: none;
+        background: transparent;
+        height: 18px;
+      }
+      input[type="range"]::-webkit-slider-runnable-track {
+        height: 2px;
+        background: rgba(47, 49, 50, 0.45);
+        border: 1px solid rgba(47, 49, 50, 0.65);
+      }
+      input[type="range"]::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 12px;
+        height: 18px;
+        margin-top: -9px;
+        border: 0;
+        background: center / contain no-repeat url("./assets/slider-thumb.svg");
+      }
+      input[type="range"]::-moz-range-track {
+        height: 2px;
+        background: rgba(47, 49, 50, 0.45);
+        border: 1px solid rgba(47, 49, 50, 0.65);
+      }
+      input[type="range"]::-moz-range-thumb {
+        width: 12px;
+        height: 18px;
+        border: 0;
+        border-radius: 0;
+        background: center / contain no-repeat url("./assets/slider-thumb.svg");
+      }
+      .hint { color: var(--soft); font-size: 10px; margin: 0; }
+      .error { color: var(--alert); }
+      #waveCanvas {
+        width: 100%;
+        height: 100%;
+        min-height: 260px;
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.35);
+        display: block;
+        touch-action: none;
+      }
+      .footer-controls {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 6px;
+      }
+      label { display: grid; gap: 3px; font-size: 10px; color: var(--soft); }
+      @media (max-width: 1200px) {
+        .grid-top { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+        .grid-bottom { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .footer-controls { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      }
+    </style>
+  </head>
+  <body>
+    <section class="row">
+      <p class="title">Mirror Module</p>
+      <p class="subtitle">mirror 1: symmetry + time | mirror 2: morphology projection</p>
+      <div class="grid grid-top">
+        <div class="card">
+          <button id="loadABtn" type="button">LOAD A</button>
+          <input id="loadAInput" type="file" accept="audio/*,.wav,.aif,.aiff" hidden />
+          <p id="metaA" class="hint">A: no file</p>
+        </div>
+        <div class="card">
+          <button id="loadBBtn" type="button">LOAD B</button>
+          <button id="swapABBtn" type="button">SWAP A/B</button>
+          <input id="loadBInput" type="file" accept="audio/*,.wav,.aif,.aiff" hidden />
+          <p id="metaB" class="hint">B: optional (required for mirror 2)</p>
+        </div>
+        <div class="card">
+          <p class="hint">Mode</p>
+          <div class="inline">
+            <button id="modeMirror1Btn" type="button" aria-pressed="true">Mirror 1</button>
+            <button id="modeMirror2Btn" type="button" aria-pressed="false">Mirror 2</button>
+          </div>
+        </div>
+        <div class="card">
+          <p class="hint">Transport</p>
+          <div class="inline">
+            <button id="playBtn" type="button" disabled>Play</button>
+            <label class="toggle"><input id="loopBtn" type="checkbox" /> Loop: </label>
+            <button id="renderBtn" type="button" disabled>Render</button>
+            <button id="undoBtn" type="button">Undo</button>
+          </div>
+        </div>
+        <div class="card">
+          <label><span>T0 Position</span><input id="t0Input" type="range" min="0" max="1000" value="500" /></label>
+          <p id="t0Readout" class="hint">t0: 0.500 | sample 0 | 0.000s</p>
+          <label><span>Snap to zero-crossing</span><button id="zeroSnapBtn" type="button" aria-pressed="false">Off</button></label>
+        </div>
+        <div class="card">
+          <p id="status" class="hint">Load clip A to begin.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="row">
+      <canvas id="waveCanvas" width="1400" height="420"></canvas>
+    </section>
+
+    <section class="row">
+      <div id="mirror1Controls" class="footer-controls">
+        <label><span>Mirror 1 Mode</span>
+          <select id="mirror1Mode">
+            <option value="replace">Replace</option>
+            <option value="extend">Extend</option>
+          </select>
+        </label>
+        <label><span>Mirror Side</span>
+          <select id="mirror1Side">
+            <option value="left-right">Left -> Right</option>
+            <option value="right-left">Right -> Left</option>
+          </select>
+        </label>
+        <label><span>Crossfade</span><input id="mirror1Crossfade" type="range" min="0" max="100" value="14" /></label>
+        <label><span>Blend</span><input id="mirror1Blend" type="range" min="0" max="100" value="100" /></label>
+      </div>
+      <div id="mirror2Controls" class="footer-controls" style="display:none">
+        <label><span>Projection Width</span><input id="mirror2Width" type="range" min="1" max="100" value="35" /></label>
+        <label><span>Envelope Smoothness</span><input id="mirror2Smooth" type="range" min="1" max="100" value="12" /></label>
+        <label><span>Projection Intensity</span><input id="mirror2Intensity" type="range" min="0" max="100" value="100" /></label>
+        <label><span>Align B to A</span>
+          <select id="mirror2AlignMode">
+            <option value="resample">Resample</option>
+            <option value="cycle">Cycle</option>
+          </select>
+        </label>
+        <label><span>Threshold</span><input id="mirror2Threshold" type="range" min="0" max="100" value="0" /></label>
+        <label><span>Threshold Mode</span>
+          <select id="mirror2ThresholdMode">
+            <option value="soft">Soft</option>
+            <option value="hard">Hard</option>
+          </select>
+        </label>
+        <label><span>Normalize A</span><button id="mirror2NormalizeBtn" type="button" aria-pressed="true">On</button></label>
+        <label><span>Signed Morphology</span><button id="mirror2SignedBtn" type="button" aria-pressed="false">Off</button></label>
+        <label><span>Reverse B Morphology</span><button id="mirror2ReverseBBtn" type="button" aria-pressed="false">Off</button></label>
+      </div>
+    </section>
+
+    <script type="module" src="./mirror_module.js"></script>
+  </body>
+</html>

@@ -1,0 +1,470 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>i^2=-1</title>
+    <style>
+      :root {
+        --bg: #f6f3ea;
+        --ink: #2f3132;
+        --soft: #55585a;
+        --line: #b7b4ab;
+        --panel: rgba(228, 223, 211, 0.58);
+        --alert: #8a3a2d;
+        --accent: #ebdbc2;
+        --font-ui: "Engebrechtre", "Avenir Next", "Helvetica Neue", sans-serif;
+        --font-head: "TT Modernoir DemiBold", "TT Modernoir Bold", "Engebrechtre", "Avenir Next", "Helvetica Neue", sans-serif;
+      }
+      * { box-sizing: border-box; }
+      html, body { margin: 0; height: 100%; }
+      body {
+        font-family: var(--font-ui);
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: var(--ink);
+        background: radial-gradient(circle at top right, #faf7ef 0%, var(--bg) 65%);
+        display: grid;
+        grid-template-rows: auto auto 1fr auto;
+        gap: 6px;
+        padding: 7px;
+        font-size: 12px;
+      }
+      .row {
+        border: 1px solid var(--line);
+        background: transparent;
+        padding: 6px;
+        display: grid;
+        gap: 6px;
+      }
+      .title {
+        font-size: 14px;
+        margin: 0;
+        font-family: var(--font-head);
+      }
+      .subtitle {
+        margin: 0;
+        color: var(--soft);
+        font-size: 10px;
+      }
+      .grid-6 {
+        display: grid;
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+        gap: 6px;
+      }
+      .grid-4 {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 6px;
+      }
+      .grid-3 {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 8px;
+      }
+      .card {
+        border: 1px solid var(--line);
+        background: var(--panel);
+        padding: 6px;
+        display: grid;
+        gap: 6px;
+      }
+      label {
+        display: grid;
+        gap: 3px;
+        font-size: 10px;
+        color: var(--soft);
+      }
+      button, input, select {
+        border: 1px solid var(--ink);
+        background: transparent;
+        color: var(--ink);
+        padding: 4px 7px;
+        font: inherit;
+        font-size: 10px;
+        text-transform: uppercase;
+      }
+      button { cursor: pointer; }
+      button:active:not(:disabled) { background-color: rgba(47, 49, 50, 0.14) !important; }
+      button[aria-pressed="true"] {
+        background: var(--ink);
+        color: var(--bg);
+      }
+      button:disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+      }
+      .toggle {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        color: var(--ink);
+      }
+      .toggle input {
+        appearance: none;
+        -webkit-appearance: none;
+        width: 40px;
+        height: 18px;
+        margin: 0;
+        border: 0;
+        background: center / contain no-repeat url("./assets/checkbox_inactive.svg");
+        cursor: pointer;
+      }
+      .toggle input:checked {
+        background-image: url("./assets/checkbox_active.svg");
+      }
+      .toggle input:disabled {
+        opacity: 0.45;
+        cursor: default;
+      }
+      #playBtn {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+      }
+      #playBtn::before {
+        content: "";
+        width: 14px;
+        height: 14px;
+        flex: 0 0 14px;
+        background-position: center;
+        background-repeat: no-repeat;
+        background-size: contain;
+      }
+      #playBtn::before {
+        background-image: url("./assets/transport_play.svg");
+      }
+      #playBtn[aria-pressed="true"]::before {
+        background-image: url("./assets/transport_play_active.svg");
+      }
+      input[type="range"] {
+        appearance: none;
+        -webkit-appearance: none;
+        background: transparent;
+        height: 18px;
+      }
+      input[type="range"]::-webkit-slider-runnable-track {
+        height: 2px;
+        background: rgba(47, 49, 50, 0.45);
+        border: 1px solid rgba(47, 49, 50, 0.65);
+      }
+      input[type="range"]::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 12px;
+        height: 18px;
+        margin-top: -9px;
+        border: 0;
+        background: center / contain no-repeat url("./assets/slider-thumb.svg");
+      }
+      input[type="range"]::-moz-range-track {
+        height: 2px;
+        background: rgba(47, 49, 50, 0.45);
+        border: 1px solid rgba(47, 49, 50, 0.65);
+      }
+      input[type="range"]::-moz-range-thumb {
+        width: 12px;
+        height: 18px;
+        border: 0;
+        border-radius: 0;
+        background: center / contain no-repeat url("./assets/slider-thumb.svg");
+      }
+      .inline {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        flex-wrap: wrap;
+      }
+      .progress-wrap {
+        height: 8px;
+        border: 1px solid var(--line);
+        background: rgba(47, 49, 50, 0.06);
+      }
+      .progress {
+        height: 100%;
+        width: 0%;
+        background: var(--ink);
+      }
+      .rec-meter-wrap {
+        height: 6px;
+        border: 1px solid var(--line);
+        background: rgba(47, 49, 50, 0.06);
+      }
+      .rec-meter-fill {
+        height: 100%;
+        width: 0%;
+        background: linear-gradient(90deg, #8e9a97 0%, #2f3132 80%, #8a3a2d 100%);
+      }
+      #waveCanvas {
+        width: 100%;
+        height: 90px;
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.35);
+      }
+      #status {
+        margin: 0;
+        color: var(--soft);
+        font-size: 10px;
+      }
+      .error { color: var(--alert); }
+      .modal {
+        position: fixed;
+        inset: 0;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        background: rgba(47, 49, 50, 0.22);
+        z-index: 30;
+      }
+      .modal.open { display: flex; }
+      .modal-card {
+        border: 1px solid var(--line);
+        background: color-mix(in srgb, var(--bg) 92%, #fff 8%);
+        padding: 10px;
+        min-width: min(92vw, 420px);
+        display: grid;
+        gap: 8px;
+      }
+      .modal-text {
+        margin: 0;
+        font-size: 10px;
+        color: var(--soft);
+      }
+      .modal-actions {
+        display: flex;
+        gap: 6px;
+        justify-content: flex-end;
+        flex-wrap: wrap;
+      }
+      .slot-bank {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 8px;
+      }
+      .slot-btn {
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.35);
+        padding: 8px;
+        text-align: left;
+        display: grid;
+        gap: 4px;
+      }
+      .slot-btn[aria-pressed="true"] {
+        border-color: var(--accent, #ebdbc2);
+        background: rgba(235, 219, 194, 0.28);
+        color: var(--ink);
+      }
+      .slot-title {
+        font-size: 10px;
+        color: var(--ink);
+      }
+      .slot-meta {
+        font-size: 9px;
+        color: var(--soft);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      @media (max-width: 1300px) {
+        .grid-6 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+        .grid-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .slot-bank { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      }
+    </style>
+  </head>
+  <body>
+    <section class="row">
+      <p class="title">i^2=-1</p>
+      <p class="subtitle">Scramble + spectral patches + generator + 8s rec</p>
+      <div class="grid-6">
+        <div class="card">
+          <div class="inline">
+            <button id="recBtn" type="button" aria-pressed="false">REC 8S</button>
+            <button id="stopRecBtn" type="button" disabled>STOP</button>
+            <button id="recRefreshBtn" type="button">REFRESH</button>
+          </div>
+          <label>
+            <span>Input</span>
+            <select id="recInputSelect">
+              <option value="">DEFAULT INPUT</option>
+            </select>
+          </label>
+          <div class="progress-wrap"><div id="recProgress" class="progress"></div></div>
+          <div class="rec-meter-wrap">
+            <div id="recMeterFill" class="rec-meter-fill"></div>
+          </div>
+          <p id="recDeviceInfo" class="subtitle">INPUT: DEFAULT</p>
+          <label>
+            <span>Duplicate mono -> stereo</span>
+            <button id="dupMonoBtn" type="button" aria-pressed="true">ON</button>
+          </label>
+        </div>
+        <div class="card">
+          <button id="loadBtn" type="button">LOAD WAV</button>
+          <input id="loadInput" type="file" accept="audio/wav,audio/*,.wav,.aif,.aiff" hidden />
+          <p id="sourceInfo" class="subtitle">SOURCE: NONE</p>
+        </div>
+        <div class="card">
+          <div class="inline">
+            <button id="waveCycleBtn" type="button">WAVE SINE</button>
+            <button id="pitchCycleBtn" type="button">PITCH C3</button>
+          </div>
+          <div class="inline">
+            <button id="cyclesCycleBtn" type="button">CYCLES 2</button>
+            <button id="dutyCycleBtn" type="button">DUTY 50%</button>
+          </div>
+          <div class="inline">
+            <button id="genBtn" type="button">GEN</button>
+            <button id="clickBtn" type="button">CLICK</button>
+          </div>
+        </div>
+        <div class="card">
+          <label>
+            <span>Preset</span>
+            <select id="presetSelect"></select>
+          </label>
+          <div class="inline">
+            <button id="applyPresetBtn" type="button">APPLY PRESET</button>
+            <button id="savePresetBtn" type="button">SAVE PRESET</button>
+            <button id="loadPresetBtn" type="button">LOAD PRESET</button>
+          </div>
+          <input id="loadPresetInput" type="file" accept=".non,.json,application/json" hidden />
+        </div>
+        <div class="card">
+          <label>
+            <span>Stereo Link</span>
+            <button id="stereoLinkBtn" type="button" aria-pressed="true">ON</button>
+          </label>
+          <p class="subtitle">Linked keeps stereo image stable</p>
+        </div>
+        <div class="card">
+          <p id="status">READY</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="row">
+      <div class="grid-4">
+        <div class="card">
+          <p class="subtitle">TIME SCRAMBLE</p>
+          <label>SIZE MS <input id="sizeMs" type="range" min="5" max="500" value="60" /></label>
+          <label>AMOUNT % <input id="amount" type="range" min="0" max="100" value="70" /></label>
+          <label>SEAM
+            <select id="seam">
+              <option value="hard">HARD</option>
+              <option value="fade" selected>FADE</option>
+              <option value="smear">SMEAR</option>
+            </select>
+          </label>
+          <label>CHAOS <input id="chaos" type="range" min="0" max="100" value="40" /></label>
+          <div class="inline">
+            <label style="flex:1">SEED <input id="seed" type="number" value="1337" step="1" /></label>
+            <button id="reseedBtn" type="button">RESEED</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <p class="subtitle">SPECTRAL</p>
+          <button id="specToggleBtn" type="button" aria-pressed="false">SPEC OFF</button>
+          <label>RESOLUTION
+            <select id="resolution">
+              <option value="low">LOW</option>
+              <option value="mid" selected>MID</option>
+              <option value="high">HIGH</option>
+            </select>
+          </label>
+          <label>BANDS
+            <select id="bands">
+              <option value="4">4</option>
+              <option value="8" selected>8</option>
+              <option value="16">16</option>
+            </select>
+          </label>
+          <label>SHIFT <input id="shift" type="range" min="0" max="100" value="35" /></label>
+          <label>PATCH % <input id="patch" type="range" min="0" max="100" value="40" /></label>
+          <label>PHASE
+            <select id="phase">
+              <option value="off" selected>OFF</option>
+              <option value="rotate">ROTATE</option>
+              <option value="random">RANDOM</option>
+            </select>
+          </label>
+          <label>SMOOTH <input id="smooth" type="range" min="0" max="100" value="25" /></label>
+        </div>
+
+        <div class="card">
+          <p class="subtitle">RENDER</p>
+          <div class="inline">
+            <button id="renderBtn" type="button">RENDER</button>
+            <button id="undoRenderBtn" type="button">UNDO RENDER</button>
+          </div>
+          <p class="subtitle" id="renderInfo">TEMP: NONE</p>
+        </div>
+
+        <div class="card">
+          <p class="subtitle">OUTPUT</p>
+          <canvas id="waveCanvas" width="800" height="220"></canvas>
+          <div class="inline">
+            <button id="playBtn" type="button">PLAY</button>
+            <label class="toggle"><input id="loopBtn" type="checkbox" /> Loop: </label>
+          </div>
+          <div class="inline">
+            <button id="saveRawBtn" type="button" disabled>SAVE RAW</button>
+            <button id="saveOutBtn" type="button" disabled>SAVE WAV</button>
+            <select id="sendTarget">
+              <option value="lazy">LAZY.SEQ</option>
+              <option value="i2">i^2=-1</option>
+              <option value="mirrorA">MIRROR A</option>
+              <option value="mirrorB">MIRROR B</option>
+              <option value="algebraA">ALGEBRA A</option>
+              <option value="algebraB">ALGEBRA B</option>
+              <option value="morphA">MORPHOGOA</option>
+              <option value="morphB">MORPHOGOB</option>
+              <option value="negInput">NEG INPUT</option>
+              <option value="negExternal">NEG EXTERNAL</option>
+            </select>
+            <button id="sendLazyBtn" type="button" disabled>TO LAZY</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="row">
+      <p class="subtitle">SAMPLE BANK (ACTIVE SLOT IS EDITED / PREVIEWED / SENT)</p>
+      <div class="slot-bank">
+        <button id="slotBtn0" class="slot-btn" type="button" aria-pressed="true">
+          <span class="slot-title">SLOT 1</span>
+          <span id="slotMeta0" class="slot-meta">EMPTY</span>
+        </button>
+        <button id="slotBtn1" class="slot-btn" type="button" aria-pressed="false">
+          <span class="slot-title">SLOT 2</span>
+          <span id="slotMeta1" class="slot-meta">EMPTY</span>
+        </button>
+        <button id="slotBtn2" class="slot-btn" type="button" aria-pressed="false">
+          <span class="slot-title">SLOT 3</span>
+          <span id="slotMeta2" class="slot-meta">EMPTY</span>
+        </button>
+        <button id="slotBtn3" class="slot-btn" type="button" aria-pressed="false">
+          <span class="slot-title">SLOT 4</span>
+          <span id="slotMeta3" class="slot-meta">EMPTY</span>
+        </button>
+      </div>
+    </section>
+
+    <div id="slotFullModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="slotFullModalTitle">
+      <div class="modal-card">
+        <p id="slotFullModalTitle" class="title">Slots full</p>
+        <p id="slotFullModalText" class="modal-text">
+          All 4 slots are occupied. Overwrite SLOT 1 or save SLOT 1 before overwriting.
+        </p>
+        <div class="modal-actions">
+          <button id="slotFullSaveBtn" type="button">SAVE SLOT 1 FIRST</button>
+          <button id="slotFullOverwriteBtn" type="button">OVERWRITE SLOT 1</button>
+          <button id="slotFullCancelBtn" type="button">CANCEL</button>
+        </div>
+      </div>
+    </div>
+
+    <script src="./i2_module.js"></script>
+  </body>
+</html>

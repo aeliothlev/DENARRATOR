@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Morphogo</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="app">
+      <header class="header">
+        <h1 class="brand" aria-label="Morphogo">
+          <span class="brand-lireq">MORPHOGO</span>
+        </h1>
+        <div class="header-right">
+          <p class="subtitle">bridge generator</p>
+          <div class="rev-badges">
+            <span id="revBadgeA" class="rev-badge">A REV</span>
+            <span id="revBadgeB" class="rev-badge">B REV</span>
+          </div>
+        </div>
+      </header>
+
+      <nav class="tabs" aria-label="Engine Tabs">
+        <button type="button" class="tab active" data-tab="ALIGN">ALIGN</button>
+        <button type="button" class="tab" data-tab="SPECTRAL">SPECTRAL</button>
+        <button type="button" class="tab" data-tab="MACHINE">MACHINE</button>
+      </nav>
+
+      <section class="panel">
+        <canvas id="waveformCanvas" class="waveform" width="1400" height="280"></canvas>
+      </section>
+
+      <section class="panel controls">
+        <div class="control-row inputs">
+          <label class="file-btn" for="fileA">Load A<input id="fileA" type="file" accept="audio/*" /></label>
+          <label class="toggle"><input id="reverseA" type="checkbox" /> Reverse A</label>
+          <button type="button" id="swapABBtn">Swap A/B</button>
+          <label class="file-btn" for="fileB">Load B<input id="fileB" type="file" accept="audio/*" /></label>
+          <label class="toggle"><input id="reverseB" type="checkbox" /> Reverse B</label>
+          <span id="metaA" class="meta">A: no file</span>
+          <span id="metaB" class="meta">B: no file</span>
+        </div>
+
+        <div class="control-row sliders">
+          <label>
+            Window
+            <input id="windowMs" type="range" min="20" max="500" step="1" value="120" />
+            <output id="windowMsOut">120 ms</output>
+          </label>
+          <label>
+            Duration
+            <input id="durationMs" type="range" min="10" max="4000" step="1" value="300" />
+            <output id="durationMsOut">300 ms</output>
+          </label>
+          <label>
+            Min Level
+            <input id="minLevelDb" type="range" min="-30" max="-15" step="1" value="-24" />
+            <output id="minLevelDbOut">-24 dB</output>
+          </label>
+        </div>
+
+        <div id="tabControls" class="control-row tab-controls"></div>
+
+        <div class="control-row footer-actions">
+          <select id="exportMode">
+            <option value="bridge_only">Bridge only</option>
+            <option value="a_bridge_b">A + Bridge + B</option>
+          </select>
+          <button type="button" id="renderBtn">Render</button>
+          <button type="button" id="playBtn" disabled>Play</button>
+          <label class="toggle"><input id="loopPreview" type="checkbox" /> Loop: </label>
+          <button type="button" id="exportBtn" disabled>Export WAV</button>
+          <span id="status" class="status">Load clip A and B to begin.</span>
+        </div>
+      </section>
+    </main>
+
+    <script type="module" src="./src/main.js"></script>
+  </body>
+</html>

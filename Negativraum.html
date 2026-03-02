@@ -1,0 +1,272 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Negativraum</title>
+    <style>
+      @font-face {
+        font-family: "LireQ";
+        src: url("./assets/fonts/LireQ-Regular.otf") format("opentype");
+        font-weight: 400;
+        font-style: normal;
+        font-display: swap;
+      }
+      :root { --bg:#f4f1ea; --panel:#faf7f0; --line:#b8b0a4; --text:#2f2c27; }
+      * { box-sizing:border-box; }
+      body { margin:0; font-family: "Engebrechtre", "Avenir Next", "Segoe UI", sans-serif; color:var(--text); background:var(--bg); font-size:12px; }
+      main { width:min(1120px,95vw); margin:12px auto 20px; display:grid; gap:7px; }
+      .panel { background:var(--panel); border:1px solid var(--line); border-radius:0; padding:9px; }
+      h1,h2 { margin:0 0 8px; }
+      h1 { font-size:22px; font-family: "TT Modernoir DemiBold", "TT Modernoir Bold", "Engebrechtre", "Avenir Next", "Segoe UI", sans-serif; }
+      h2 { font-size:12px; }
+      .brand {
+        --brand-size: clamp(3.8rem, 11vw, 6.2rem);
+        font-family: "LireQ", "Avenir Next", "Segoe UI", sans-serif;
+        letter-spacing: 0.03em;
+        text-transform: uppercase;
+        font-size: var(--brand-size);
+        line-height: 0.95;
+      }
+      .tagline {
+        font-family: "DDC Hardware", "Avenir Next", "Segoe UI", sans-serif;
+        font-size: calc(var(--brand-size) / 3);
+        letter-spacing: 0.012em;
+        line-height: 1.05;
+        max-width: 100%;
+      }
+      .grid { display:grid; gap:7px; }
+      .two-col { grid-template-columns:repeat(2,minmax(0,1fr)); }
+      .field { display:grid; gap:4px; }
+      .checkbox-wrap { display:grid; gap:4px; align-content:start; }
+      input,select,button,audio { font:inherit; }
+      input[type="range"], input[type="file"], select, button { width:100%; }
+      input[type="range"] {
+        appearance: none;
+        -webkit-appearance: none;
+        background: transparent;
+        height: 18px;
+      }
+      input[type="range"]::-webkit-slider-runnable-track {
+        height: 2px;
+        background: rgba(47, 44, 39, 0.45);
+        border: 1px solid rgba(47, 44, 39, 0.65);
+      }
+      input[type="range"]::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 12px;
+        height: 18px;
+        margin-top: -9px;
+        border: 0;
+        background: center / contain no-repeat url("./assets/slider-thumb.svg");
+      }
+      input[type="range"]::-moz-range-track {
+        height: 2px;
+        background: rgba(47, 44, 39, 0.45);
+        border: 1px solid rgba(47, 44, 39, 0.65);
+      }
+      input[type="range"]::-moz-range-thumb {
+        width: 12px;
+        height: 18px;
+        border: 0;
+        border-radius: 0;
+        background: center / contain no-repeat url("./assets/slider-thumb.svg");
+      }
+      input[type="checkbox"] {
+        appearance: none;
+        -webkit-appearance: none;
+        width: 24px;
+        min-width: 24px;
+        height: 14px;
+        border: 0;
+        margin: 0 6px 0 0;
+        background: center / contain no-repeat url("./assets/checkbox_inactive.svg");
+        vertical-align: middle;
+        cursor: pointer;
+      }
+      input[type="checkbox"]:checked {
+        background-image: url("./assets/checkbox_active.svg");
+      }
+      button,input[type="file"],select,input[type="text"],input[type="number"] { border:1px solid var(--line); border-radius:0; padding:6px; background:#fffdf8; }
+      button:active:not(:disabled) { background-color: rgba(47, 49, 50, 0.14) !important; }
+      input[type="text"],input[type="number"] { width:100%; }
+      .file-slot { position:relative; border:1px solid var(--line); border-radius:0; overflow:hidden; min-height:46px; }
+      .file-slot canvas { position:absolute; inset:0; width:100%; height:100%; pointer-events:none; opacity:.7; }
+      .file-ui { position:relative; z-index:1; display:flex; align-items:center; gap:6px; padding:6px; }
+      .file-label { font-size:10px; color:#2f2c27; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+      .file-input-hidden { display:none; }
+      .actions { margin-top:6px; }
+      .status { margin:8px 0 0; min-height:1.2rem; }
+      canvas { width:100%; border:1px solid var(--line); border-radius:0; background:#fff; }
+      .output-box { display:grid; gap:6px; }
+      .inline-row { display:grid; grid-template-columns:1fr auto; gap:6px; }
+      .output-transport { grid-template-columns:auto 1fr; align-items:center; }
+      .hidden-audio { display:none; }
+      #outputWaveCanvas { height:64px; }
+      .play-toggle { width:32px; min-width:32px; height:32px; border:1px solid var(--line); border-radius:0; background:#f4f1ea; padding:0; position:relative; }
+      .play-toggle::before { content:""; position:absolute; left:11px; top:8px; width:0; height:0; border-top:7px solid transparent; border-bottom:7px solid transparent; border-left:11px solid #2f2c27; }
+      .play-toggle::after { content:""; position:absolute; left:12px; top:9px; width:0; height:0; border-top:6px solid transparent; border-bottom:6px solid transparent; border-left:9px solid #f4f1ea; }
+      .play-toggle.is-playing::after { border-left-color:#d4cec0; }
+      @media (max-width:900px){ .two-col{ grid-template-columns:1fr; } }
+    </style>
+  </head>
+  <body>
+    <main>
+      <section class="panel">
+        <h1 class="brand">NEGATIVRAUM</h1>
+        <p class="tagline">Spektrales Komplement + Erwartungsabweichung</p>
+      </section>
+
+      <section class="panel">
+        <h2>Input</h2>
+        <div class="grid two-col">
+          <label class="field">
+            <span>Eingangssignal</span>
+            <div class="file-slot">
+              <canvas id="inputWavePreview" width="900" height="54"></canvas>
+              <div class="file-ui">
+                <button id="inputBrowseBtn" type="button">Datei wählen</button>
+                <span id="inputFileLabel" class="file-label">Keine Datei geladen</span>
+              </div>
+              <input type="file" id="inputFile" class="file-input-hidden" accept="audio/wav,audio/x-wav,audio/*" />
+            </div>
+            <small id="inputMeta">Keine Datei geladen</small>
+          </label>
+          <label class="field">
+            <span>Externe Referenz</span>
+            <div class="file-slot">
+              <canvas id="refWavePreview" width="900" height="54"></canvas>
+              <div class="file-ui">
+                <button id="refBrowseBtn" type="button">Datei wählen</button>
+                <span id="refFileLabel" class="file-label">Keine Referenz geladen</span>
+              </div>
+              <input type="file" id="refFile" class="file-input-hidden" accept="audio/wav,audio/x-wav,audio/*" />
+            </div>
+            <small id="refMeta">Keine Referenz geladen</small>
+          </label>
+        </div>
+        <div class="actions">
+          <button id="swapInputRefBtn" type="button">Swap Input/Ref</button>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>1. STFT Settings</h2>
+        <div class="grid two-col">
+          <label class="field"><span>Window</span><select id="windowType"><option value="hann" selected>Hann</option></select></label>
+          <label class="field"><span>FFT Size</span><select id="fftSize"><option value="1024">1024</option><option value="2048" selected>2048</option><option value="4096">4096</option></select></label>
+          <label class="field"><span>Overlap</span><select id="overlap"><option value="0.5">50%</option><option value="0.75" selected>75%</option><option value="0.875">87.5%</option></select></label>
+          <div class="field checkbox-wrap"><label><input type="checkbox" id="zeroPad" /> Zero-padding am Ende</label></div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>2. Complement</h2>
+        <div class="grid two-col">
+          <label class="field"><span>Reference Spectrum R(k)</span><select id="refMode"><option value="global_mean" selected>Global Mean Spectrum</option><option value="white">White</option><option value="pink">Pink</option><option value="external">External Reference</option></select></label>
+          <label class="field"><span>Complement Strength a: <output id="alphaOut">1.00</output></span><input type="range" id="alpha" min="0" max="2" step="0.01" value="1" /></label>
+          <div class="field checkbox-wrap"><label><input type="checkbox" id="complementAbs" /> |R-|X||</label><label><input type="checkbox" id="enableComplement" checked /> Modul A aktiv</label></div>
+          <label class="field"><span>R-Skalierung: <output id="refScaleOut">1.00</output></span><input type="range" id="refScale" min="0.1" max="4" step="0.01" value="1" /></label>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>3. Expectation / Deviation</h2>
+        <div class="grid two-col">
+          <label class="field"><span>Expectation Mode</span><select id="expectMode"><option value="adaptive" selected>Adaptive</option><option value="global">Global</option></select></label>
+          <label class="field"><span>Deviation Type</span><select id="deviationMode"><option value="full" selected>Full Residual</option><option value="positive">Positive Only</option><option value="negative">Negative Only</option></select></label>
+          <label class="field"><span>Expectation Window (s): <output id="expectWindowOut">2.00</output></span><input type="range" id="expectWindow" min="0.5" max="10" step="0.1" value="2" /></label>
+          <label class="field"><span>Deviation Strength b: <output id="betaOut">1.00</output></span><input type="range" id="beta" min="0" max="3" step="0.01" value="1" /></label>
+          <label class="field"><span>Threshold: <output id="thresholdOut">0.000</output></span><input type="range" id="threshold" min="0" max="0.2" step="0.001" value="0" /></label>
+          <label class="field"><span>Soft Mask: <output id="softMaskOut">0.050</output></span><input type="range" id="softMask" min="0" max="0.2" step="0.001" value="0.05" /></label>
+          <div class="field checkbox-wrap"><label><input type="checkbox" id="enableDeviation" checked /> Modul B aktiv</label></div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>4. Phase Mode</h2>
+        <div class="grid two-col">
+          <label class="field"><span>Phase</span><select id="phaseMode"><option value="preserve" selected>Preserve</option><option value="randomize">Randomize</option><option value="reference">Reference</option></select></label>
+          <div class="field checkbox-wrap"><label><input type="checkbox" id="randomizeDeviation" /> Deviation randomisieren</label></div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>5. Master Output</h2>
+        <div class="grid two-col">
+          <div class="field checkbox-wrap"><label><input type="checkbox" id="antiClip" checked /> Anti-Clipping</label><label><input type="checkbox" id="limiter" /> Limiter</label><label><input type="checkbox" id="rmsNorm" /> RMS-Normalisierung</label><label><input type="checkbox" id="enableLowLift" /> Low-Level Lift</label></div>
+          <div class="field checkbox-wrap"><label><input type="checkbox" id="preserveLength" checked /> Länge wie Input</label><label><input type="checkbox" id="showIntermediate" checked /> Intermediates anzeigen</label></div>
+          <div class="field checkbox-wrap"><label><input type="checkbox" id="enableReshuffler" /> Layer 2: Reshuffler</label></div>
+          <label class="field"><span>X-Split: <output id="reshuffleSplitsOut">4</output></span><input type="range" id="reshuffleSplits" min="1" max="32" step="1" value="4" /></label>
+          <div class="field"><span>Shuffle Seed</span><div class="inline-row"><input type="number" id="reshuffleSeed" min="0" max="4294967295" step="1" value="1337" /><button type="button" id="randomSeedBtn">Random Seed</button></div><small><label><input type="checkbox" id="useFixedSeed" /> Fixed Seed</label></small></div>
+          <label class="field"><span>Low-Level Ziel: <output id="lowLiftDbOut">-20 dB</output></span><input type="range" id="lowLiftDb" min="-30" max="-10" step="1" value="-20" /></label>
+          <label class="field"><span>Max Lift: <output id="lowLiftMaxOut">18 dB</output></span><input type="range" id="lowLiftMax" min="6" max="30" step="1" value="18" /></label>
+        </div>
+        <div class="actions"><button id="processBtn" type="button">Render WAV</button></div>
+        <p id="status" class="status">Warte auf Eingangssignal.</p>
+      </section>
+
+      <section class="panel">
+        <h2>6. Tritone Layers</h2>
+        <div class="grid two-col">
+          <div class="field checkbox-wrap"><label><input type="checkbox" id="enableTritone" /> Enable Tritone Layers</label><label><input type="checkbox" id="tritoneRandomPhase" /> leichte Phase-Randomization</label><label><input type="checkbox" id="tritoneStereoSpread" checked /> leichte Stereo-Spread</label></div>
+          <label class="field"><span>Global Tritone Mix: <output id="tritoneMixOut">0.35</output></span><input type="range" id="tritoneMix" min="0" max="1" step="0.01" value="0.35" /></label>
+          <label class="field"><span>Gain Up (+6): <output id="tritoneUpOut">1.00</output></span><input type="range" id="tritoneUpGain" min="0" max="2" step="0.01" value="1" /></label>
+          <label class="field"><span>Gain Down (-6): <output id="tritoneDownOut">1.00</output></span><input type="range" id="tritoneDownGain" min="0" max="2" step="0.01" value="1" /></label>
+          <label class="field"><span>Stereo Spread: <output id="tritoneSpreadOut">0.25</output></span><input type="range" id="tritoneSpread" min="0" max="1" step="0.01" value="0.25" /></label>
+          <label class="field"><span>Phase Texture: <output id="tritonePhaseJitterOut">0.08</output></span><input type="range" id="tritonePhaseJitter" min="0" max="0.5" step="0.01" value="0.08" /></label>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>7. Random Retriggers</h2>
+        <div class="grid two-col">
+          <label class="field"><span>Mode</span><select id="retriggerMode"><option value="auto" selected>Auto</option><option value="manual">Manual (Click)</option><option value="hybrid">Hybrid</option></select></label>
+          <div class="field checkbox-wrap"><label><input type="checkbox" id="enableRetrigger" /> Random Retriggers an</label></div>
+          <label class="field"><span>Amount: <output id="retriggerAmountOut">0.35</output></span><input type="range" id="retriggerAmount" min="0" max="1" step="0.01" value="0.35" /></label>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>8. Absurd Gaters</h2>
+        <div class="grid two-col">
+          <label class="field"><span>Mode</span><select id="gaterMode"><option value="auto" selected>Auto</option><option value="manual">Manual (Click)</option><option value="hybrid">Hybrid</option></select></label>
+          <div class="field checkbox-wrap"><label><input type="checkbox" id="enableGater" /> Absurd Gaters an</label></div>
+          <label class="field"><span>Amount: <output id="gaterAmountOut">0.30</output></span><input type="range" id="gaterAmount" min="0" max="1" step="0.01" value="0.30" /></label>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>Spektral-Visualizer</h2>
+        <canvas id="specCanvas" width="1200" height="300"></canvas>
+      </section>
+
+      <section class="panel">
+        <h2>Output</h2>
+        <div class="output-box">
+          <canvas id="outputWaveCanvas" width="1200" height="88"></canvas>
+          <div class="grid two-col">
+            <label class="field"><span>Wave Click Tool</span><select id="waveClickTool"><option value="seek" selected>Seek</option><option value="add_retrigger">Add Retrigger</option><option value="add_gate">Add Gate</option><option value="erase_retrigger">Erase Nearest Retrigger</option><option value="erase_gate">Erase Nearest Gate</option></select></label>
+            <div class="field checkbox-wrap"><label>Retrigger points: <strong id="retriggerPointCount">0</strong></label><label>Gate points: <strong id="gaterPointCount">0</strong></label></div>
+          </div>
+          <div class="inline-row"><button id="clearRetriggerPointsBtn" type="button">Clear Retrigger Points</button><button id="clearGaterPointsBtn" type="button">Clear Gate Points</button></div>
+          <div class="inline-row output-transport"><button id="outputPlayBtn" type="button" class="play-toggle" aria-label="Play/Pause"></button><button id="outputRenderBtn" type="button">Render WAV</button></div>
+          <audio id="audioOut" class="hidden-audio"></audio>
+          <label><input type="checkbox" id="loopOutput" /> Loop Output</label>
+          <div class="field checkbox-wrap"><label><input type="checkbox" id="enableLiveSaturator" /> Live Saturator an</label></div>
+          <label class="field"><span>Saturator Drive: <output id="saturatorDriveOut">2.00</output></span><input type="range" id="saturatorDrive" min="1" max="8" step="0.01" value="2" /></label>
+          <label class="field"><span>Saturator Mix: <output id="saturatorMixOut">0.35</output></span><input type="range" id="saturatorMix" min="0" max="1" step="0.01" value="0.35" /></label>
+          <button id="addSaturatorBtn" type="button" disabled>Add Saturator to Output</button>
+          <label class="field"><span>Output Name</span><input type="text" id="outputName" value="negativraum_output" /></label>
+          <label class="field"><span>Config Name</span><input type="text" id="configName" value="negativraum_config" /></label>
+          <div class="inline-row"><button id="saveConfigBtn" type="button">Save Config (.negat)</button><button id="loadConfigBtn" type="button">Load Config (.negat)</button></div>
+          <input type="file" id="loadConfigFile" accept=".negat,.logo,application/json" hidden />
+          <button id="downloadBtn" disabled>Output als WAV speichern</button>
+        </div>
+      </section>
+    </main>
+
+    <script src="./app.js"></script>
+  </body>
+</html>

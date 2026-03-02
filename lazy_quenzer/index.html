@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Lazy.SEQ</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="button-group transport">
+        <button id="playBtn" type="button">PLAY</button>
+        <button id="rewindBtn" type="button">BACK</button>
+        <button id="undoBtn" type="button">UNDO</button>
+        <button id="loopBtn" type="button" aria-pressed="true">LOOP ON</button>
+        <button id="duplicateLoopBtn" type="button">DUP LOOP</button>
+        <button id="mixToggleBtn" type="button" aria-pressed="false">MIX</button>
+        <button id="loopModeBtn" type="button" aria-pressed="false">LOOPMODE</button>
+        <button id="repeatSnapBtn" type="button" aria-pressed="true">SNAP ON</button>
+        <button id="flexoModeBtn" type="button" aria-pressed="false">FLEXO OFF</button>
+        <button id="stopTimelineBtn" type="button" aria-pressed="false">STOP TL OFF</button>
+        <button id="toolBtn" type="button" aria-pressed="false">TOOL ARROW</button>
+        <button id="delayKillBtn" type="button" aria-pressed="false">DLY OFF</button>
+        <button id="exportLoopBtn" type="button">EXP LOOP</button>
+        <button id="exportAutomationBtn" type="button" aria-pressed="false">EXP AUTO OFF</button>
+        <button id="newFileBtn" type="button">NEW</button>
+        <button id="saveQuenceBtn" type="button">SAVE</button>
+        <button id="loadQuenceBtn" type="button">LOAD</button>
+        <button id="pasteCliplibBtn" type="button">PASTE LIB</button>
+        <button id="recordAutomationBtn" type="button" aria-pressed="false">REC AUDIO</button>
+        <button id="recordFaderBtn" type="button" aria-pressed="false">REC FDR</button>
+        <button id="clearAutomationBtn" type="button">CLR FDR</button>
+        <button id="loadAutomationBtn" type="button">LOAD CLR</button>
+        <button id="tabSequencerBtn" type="button" aria-pressed="true">SEQ</button>
+        <button id="tabClipListBtn" type="button" aria-pressed="false">LOOPR</button>
+      </div>
+    </header>
+
+    <main>
+      <section class="dropzone-wrap">
+        <button id="importBtn" class="file-btn" type="button">IMPORT WAV / AIFF</button>
+        <input id="fileInput" type="file" accept="audio/*,.wav,.aif,.aiff" multiple />
+        <input id="quenceInput" type="file" accept=".quence,application/json" />
+        <input id="automationInput" type="file" accept=".lqrec,application/json" />
+        <input id="folderPickerInput" type="file" webkitdirectory directory multiple hidden />
+        <p id="dropHint">DROP AUDIO FILES HERE</p>
+        <div class="quick-fields">
+          <label>
+            <span>GAIN MIN (DB)</span>
+            <input id="gainMinInput" type="number" min="-60" max="6" step="1" value="-24" />
+          </label>
+          <label>
+            <span>GAIN MAX (DB)</span>
+            <input id="gainMaxInput" type="number" min="-60" max="12" step="1" value="0" />
+          </label>
+          <label>
+            <span>.QUENCE NAME</span>
+            <input id="quenceNameInput" type="text" placeholder="MY_SEQUENCE" />
+          </label>
+        </div>
+      </section>
+
+      <section id="sequencerPanel" class="timeline-wrap">
+        <div id="timelineViewport" class="timeline-viewport">
+          <canvas id="timelineCanvas" width="1400" height="520"></canvas>
+        </div>
+      </section>
+
+      <section id="sequencerControls" class="controls">
+        <div class="fx-stack">
+          <div class="live-metrics">
+            <span id="timelineInfo">TIMELINE: 1.00S</span>
+            <span id="playheadInfo">PLAYHEAD: 0.00S</span>
+            <span id="loopInfo">LOOP: 0.00S - 1.00S</span>
+            <span id="clipInfo">CLIPS: 0</span>
+          </div>
+          <section class="xy-card">
+            <div class="xy-head">
+              <span>DELAY (SELECTED CLIPS)</span>
+              <span><output id="delayTimeValue">260ms</output> | <output id="delayFeedbackValue">35%</output> | <output id="delayMixValue">28%</output></span>
+            </div>
+            <button id="delaySelectBtn" class="mini-btn" type="button" aria-pressed="false">SELECT OFF</button>
+            <label>
+              <span>TIME</span>
+              <input id="delayTimeInput" type="range" min="20" max="1200" step="1" value="260" />
+            </label>
+            <label>
+              <span>FEEDBACK</span>
+              <input id="delayFeedbackInput" type="range" min="0" max="95" step="1" value="35" />
+            </label>
+            <label>
+              <span>MIX</span>
+              <input id="delayMixInput" type="range" min="0" max="100" step="1" value="28" />
+            </label>
+          </section>
+          <section class="xy-card">
+            <div class="xy-head">
+              <span>RETRIGGER / GATER</span>
+              <span><output id="retriggerValue">0</output> | <output id="gaterValue">0</output></span>
+            </div>
+            <div id="rhythmPad" class="xy-pad" role="application" aria-label="Retrigger and Gater pad">
+              <div id="rhythmPadCursor" class="xy-cursor" aria-hidden="true"></div>
+            </div>
+            <input id="retriggerInput" type="range" min="0" max="5" step="1" value="0" hidden />
+            <input id="gaterInput" type="range" min="0" max="5" step="1" value="0" hidden />
+          </section>
+          <section class="xy-card">
+            <div class="xy-head">
+              <span>SAT DRIVE / MIX</span>
+              <span><output id="satDriveValue">1.0</output> | <output id="satMixValue">0%</output></span>
+            </div>
+            <div id="saturatorPad" class="xy-pad" role="application" aria-label="Saturator Drive and Mix pad">
+              <div id="saturatorPadCursor" class="xy-cursor" aria-hidden="true"></div>
+            </div>
+            <input id="satDriveInput" type="range" min="1" max="40" step="1" value="1" hidden />
+            <input id="satMixInput" type="range" min="0" max="100" step="1" value="0" hidden />
+          </section>
+          <section class="xy-card">
+            <div class="xy-head">
+              <span>PITCH / INV CUTOFF</span>
+              <span><output id="pitchValue">+0.0st</output> | <output id="invCutoffValue">0%</output></span>
+            </div>
+            <div id="tonePad" class="xy-pad" role="application" aria-label="Pitch and inverted cutoff pad">
+              <div id="tonePadCursor" class="xy-cursor" aria-hidden="true"></div>
+            </div>
+            <input id="pitchInput" type="range" min="-12" max="12" step="0.1" value="0" hidden />
+            <input id="invCutoffInput" type="range" min="0" max="1" step="0.01" value="0" hidden />
+          </section>
+        </div>
+      </section>
+
+      <section id="clipListPanel" class="panel-hidden loopr-page">
+        <div class="loopstack-header">
+          <strong>LAZY.LOOPR</strong>
+          <span id="looprPausedBadge" class="loopr-paused-badge panel-hidden">PAUSED</span>
+        </div>
+        <div class="loopstack-actions">
+          <button id="looprPlayBtn" type="button" aria-pressed="true">LOOPR PLAY</button>
+          <button id="loopstackMuteAllBtn" type="button" aria-pressed="false">MUTE ALL OFF</button>
+          <button id="loopstackFollowBtn" type="button" aria-pressed="true">FOLLOW ON</button>
+          <button id="loopstackStartModeBtn" type="button">NEW: FREE</button>
+          <button id="loopstackResumeAllBtn" type="button">RESUME ALL</button>
+          <button id="loopstackClearBtn" type="button">CLEAR ALL</button>
+        </div>
+        <div id="loopstackList" class="loopstack-list"></div>
+        <ul id="clipList" class="clip-list panel-hidden"></ul>
+      </section>
+    </main>
+
+    <aside id="mixerPanel" class="mixer panel-hidden" aria-hidden="true">
+      <div class="mixer-header">
+        <strong>MIXER</strong>
+        <button id="mixerCloseBtn" type="button">X</button>
+      </div>
+      <div class="mixer-actions">
+        <button id="mixerMuteAllBtn" type="button" aria-pressed="false">MUTE ALL OFF</button>
+      </div>
+      <div class="mixer-strips">
+        <div class="mixer-strip" data-channel-index="0">
+          <strong>CH0</strong>
+          <input class="mixer-fader" data-channel-index="0" type="range" min="-60" max="0" step="1" value="0" />
+          <span class="mixer-db" data-channel-index="0">0 dB</span>
+          <button class="mixer-mute-btn" data-channel-index="0" type="button" aria-pressed="false">MUTE OFF</button>
+        </div>
+        <div class="mixer-strip" data-channel-index="1">
+          <strong>CH1</strong>
+          <input class="mixer-fader" data-channel-index="1" type="range" min="-60" max="0" step="1" value="0" />
+          <span class="mixer-db" data-channel-index="1">0 dB</span>
+          <button class="mixer-mute-btn" data-channel-index="1" type="button" aria-pressed="false">MUTE OFF</button>
+        </div>
+        <div class="mixer-strip" data-channel-index="2">
+          <strong>CH2</strong>
+          <input class="mixer-fader" data-channel-index="2" type="range" min="-60" max="0" step="1" value="0" />
+          <span class="mixer-db" data-channel-index="2">0 dB</span>
+          <button class="mixer-mute-btn" data-channel-index="2" type="button" aria-pressed="false">MUTE OFF</button>
+        </div>
+        <div class="mixer-strip" data-channel-index="3">
+          <strong>CH3</strong>
+          <input class="mixer-fader" data-channel-index="3" type="range" min="-60" max="0" step="1" value="0" />
+          <span class="mixer-db" data-channel-index="3">0 dB</span>
+          <button class="mixer-mute-btn" data-channel-index="3" type="button" aria-pressed="false">MUTE OFF</button>
+        </div>
+      </div>
+    </aside>
+
+    <div id="clipLoopPopup" class="loop-popup panel-hidden" aria-hidden="true">
+      <div class="loop-popup-card">
+        <div class="loop-popup-head">
+          <strong>CLIP LOOP</strong>
+          <button id="clipLoopCancelBtn" type="button">X</button>
+        </div>
+        <p id="clipLoopName" class="loop-popup-name">NO CLIP</p>
+        <canvas id="clipLoopCanvas" width="640" height="120"></canvas>
+        <label>
+          <span>IN</span>
+          <input id="clipLoopInInput" type="range" min="0" max="1" step="0.0001" value="0" />
+        </label>
+        <label>
+          <span>OUT</span>
+          <input id="clipLoopOutInput" type="range" min="0" max="1" step="0.0001" value="1" />
+        </label>
+        <div class="loop-popup-meta">
+          <span id="clipLoopRangeInfo">0.00s - 0.00s</span>
+          <label>
+            <span>START MODE</span>
+            <select id="clipLoopStartMode">
+              <option value="free">FREE</option>
+              <option value="sync">SYNC</option>
+            </select>
+          </label>
+          <label>
+            <span>AFTER</span>
+            <select id="clipLoopAfterMode">
+              <option value="remove" selected>REMOVE</option>
+              <option value="keep">KEEP</option>
+            </select>
+          </label>
+        </div>
+        <div class="loop-popup-actions">
+          <button id="clipLoopOnBtn" type="button">LOOP ON</button>
+          <button id="clipLoopCancelBtn2" type="button">CANCEL</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="loopstackToast" class="loopstack-toast panel-hidden" aria-hidden="true">
+      <span id="loopstackToastText">Sent to LOOPR (1)</span>
+      <button id="loopstackToastOpenBtn" type="button">OPEN</button>
+    </div>
+
+    <script src="./app.js"></script>
+  </body>
+</html>

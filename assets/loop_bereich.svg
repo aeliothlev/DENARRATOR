@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Layer_2" data-name="Layer 2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40.41 458.25">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: #3d3d3d;
+      }
+    </style>
+  </defs>
+  <g id="Layer_1-2" data-name="Layer 1">
+    <g id="loop_bereich">
+      <path id="unten" class="cls-1" d="M21.57,423.43v-2.66h-2.6v2.51c0,28.44-18.97,34.96-18.97,34.96h40.41c-20-7.38-18.84-34.81-18.84-34.81Z"/>
+      <path id="linie" class="cls-1" d="M21.62,26.08v422h-3.4V25.7l3.4.38Z"/>
+      <path id="oben" class="cls-1" d="M0,0c20,7.38,18.84,34.81,18.84,34.81v.8h2.6v-.65C21.44,6.52,40.41,0,40.41,0H0Z"/>
+    </g>
+  </g>
+</svg>

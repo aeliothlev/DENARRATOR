@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Layer_2" data-name="Layer 2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 61.26 35.63">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: #f4f2f2;
+        stroke-width: 2px;
+      }
+
+      .cls-1, .cls-2 {
+        stroke: #000;
+        stroke-miterlimit: 10;
+      }
+
+      .cls-2 {
+        fill: #c1c1c1;
+      }
+    </style>
+  </defs>
+  <g id="Checkbox">
+    <g id="checkbox_active">
+      <path id="checkbox_inactive" class="cls-1" d="M30.63,34.61c21.79-.8,29.51-16.73,29.51-16.73C54.86,7.61,43.3,1,30.63,1S6.4,7.61,1.12,17.88c0,0,8.84,17.49,29.51,16.73Z"/>
+      <g>
+        <circle class="cls-2" cx="31.72" cy="18.41" r="13.54"/>
+        <circle cx="31.72" cy="18.41" r="5.88"/>
+      </g>
+    </g>
+  </g>
+</svg>

@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Particles</title>
+    <style>
+      :root {
+        --bg: #f5f2eb;
+        --ink: #2a2b2d;
+        --line: #bcb8ae;
+        --soft: #5e6164;
+        --ok: #e7a35f;
+        --warn: #e7a35f;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background: radial-gradient(circle at 85% 8%, #fbf8f1 0%, var(--bg) 62%);
+        color: var(--ink);
+        font-family: "Avenir Next Condensed", "Arial Narrow", sans-serif;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        font-size: 12px;
+      }
+      main {
+        min-height: 100vh;
+        display: grid;
+        grid-template-rows: auto auto minmax(0, 1fr);
+        gap: 8px;
+        padding: 8px;
+      }
+      .panel {
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.32);
+        padding: 8px;
+      }
+      .row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+      .grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+      label { display: grid; gap: 4px; font-size: 11px; color: var(--soft); }
+      button, input, select {
+        border: 1px solid var(--ink);
+        border-radius: 0;
+        background: transparent;
+        color: var(--ink);
+        font: inherit;
+        text-transform: uppercase;
+      }
+      button { height: 28px; padding: 0 10px; cursor: pointer; }
+      button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+      button:disabled { opacity: 0.4; cursor: not-allowed; }
+      input[type="number"], select { height: 28px; padding: 0 8px; }
+      input[type="range"] {
+        width: 100%;
+        padding: 0;
+        border: 0;
+        appearance: none;
+        -webkit-appearance: none;
+        background: transparent;
+        height: 18px;
+      }
+      input[type="range"]::-webkit-slider-runnable-track {
+        height: 2px;
+        background: rgba(47, 49, 50, 0.45);
+        border: 1px solid rgba(47, 49, 50, 0.65);
+      }
+      input[type="range"]::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 12px;
+        height: 18px;
+        margin-top: -9px;
+        border: 0;
+        background: center / contain no-repeat url("./assets/slider-thumb.svg");
+      }
+      input[type="range"]::-moz-range-track {
+        height: 2px;
+        background: rgba(47, 49, 50, 0.45);
+        border: 1px solid rgba(47, 49, 50, 0.65);
+      }
+      input[type="range"]::-moz-range-thumb {
+        width: 12px;
+        height: 18px;
+        border: 0;
+        border-radius: 0;
+        background: center / contain no-repeat url("./assets/slider-thumb.svg");
+      }
+      .value, .status { color: var(--soft); }
+      .badge {
+        border: 1px solid var(--line);
+        padding: 2px 6px;
+        font-size: 10px;
+        color: var(--soft);
+      }
+      .badge.ok { color: var(--ok); border-color: rgba(231,163,95,0.55); }
+      .badge.err { color: var(--warn); border-color: rgba(231,163,95,0.55); }
+      .diag-log {
+        display: none;
+        margin-top: 6px;
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.35);
+        min-height: 82px;
+        max-height: 140px;
+        overflow: auto;
+        padding: 6px;
+        color: var(--soft);
+        font-size: 10px;
+        text-transform: none;
+        letter-spacing: 0.02em;
+      }
+      .diag-log.on { display: block; }
+      #viewCanvas {
+        width: 100%;
+        height: 100%;
+        min-height: 360px;
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.55);
+      }
+      .renderbar {
+        position: relative;
+        height: 8px;
+        border: 1px solid var(--line);
+        overflow: hidden;
+        background: rgba(255, 255, 255, 0.55);
+        min-width: 140px;
+      }
+      .renderbar > i {
+        position: absolute;
+        top: 0;
+        left: -34%;
+        width: 34%;
+        height: 100%;
+        background: repeating-linear-gradient(45deg, rgba(42,43,45,.85) 0 4px, rgba(42,43,45,.25) 4px 8px);
+        animation: rbar 1.1s linear infinite;
+        display: none;
+      }
+      .renderbar.busy > i { display: block; }
+      @keyframes rbar { from { left: -34%; } to { left: 100%; } }
+      @media (max-width: 980px) {
+        .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      }
+      @media (max-width: 640px) {
+        .grid { grid-template-columns: 1fr; }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <section class="panel">
+        <div class="row" style="justify-content:space-between;">
+          <strong>Particles v2</strong>
+          <div class="row">
+            <button id="diagBtn" type="button" aria-pressed="false">Diag</button>
+            <button id="selftestBtn" type="button">Selftest</button>
+            <span id="status" class="status">Ready</span>
+          </div>
+        </div>
+        <div class="row" style="margin-top:6px;">
+          <span id="badgeModel" class="badge">Model -</span>
+          <span id="badgeField" class="badge">Field -</span>
+          <span id="badgeView" class="badge">View -</span>
+          <span id="badgeSonify" class="badge">Sonify -</span>
+        </div>
+        <pre id="diagLog" class="diag-log"></pre>
+
+        <div class="grid" style="margin-top:8px;">
+          <label>Z<input id="zInput" type="number" min="1" max="118" step="1" value="8" /></label>
+          <label>N<input id="nInput" type="number" min="0" max="126" step="1" value="8" /></label>
+          <label>N (orbital)<input id="qnNInput" type="number" min="1" max="7" step="1" value="3" /></label>
+          <label>L<input id="qnLInput" type="number" min="0" max="6" step="1" value="2" /></label>
+          <label>M<input id="qnMInput" type="number" min="-6" max="6" step="1" value="0" /></label>
+          <label>View<select id="viewSel"><option value="ISO3D">ISO3D</option><option value="SLICE2D">SLICE2D</option></select></label>
+          <label>Sonify<select id="sonifySel"><option value="SPEC">SPEC</option><option value="PATH">PATH</option><option value="ADD">ADD</option></select></label>
+          <label>Dur <span id="durVal" class="value">4.0s</span><input id="durInput" type="range" min="100" max="800" step="1" value="400" /></label>
+          <label>Lift <span id="liftVal" class="value">24dB</span><input id="liftInput" type="range" min="0" max="36" step="1" value="24" /></label>
+          <label>Iso <span id="isoVal" class="value">0.22</span><input id="isoInput" type="range" min="4" max="80" step="1" value="22" /></label>
+          <label>Smooth <span id="smoothVal" class="value">35%</span><input id="smoothInput" type="range" min="0" max="100" step="1" value="35" /></label>
+          <label>Norm<button id="normBtn" type="button" aria-pressed="true">On</button></label>
+          <label>Airbag<button id="airbagBtn" type="button" aria-pressed="true">On</button></label>
+          <label>Auto Rot<button id="autorotBtn" type="button" aria-pressed="true">On</button></label>
+          <label>Plane<select id="planeSel"><option value="XY">XY</option><option value="XZ">XZ</option><option value="YZ">YZ</option></select></label>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="row" style="justify-content:space-between;">
+          <div class="row">
+            <button id="renderBtn" type="button">Render</button>
+            <button id="playBtn" type="button" aria-pressed="false" disabled>Play</button>
+            <button id="saveBtn" type="button" disabled>Save WAV</button>
+            <button id="sendBtn" type="button" disabled>To Lazy</button>
+          </div>
+          <div class="row">
+            <span id="tempBadge" class="badge">TEMP OFF</span>
+            <div id="renderBar" class="renderbar"><i></i></div>
+          </div>
+        </div>
+        <div class="row" style="margin-top:6px;"><span id="meta" class="value">ELEMENT: O | CHARGE: 0</span></div>
+      </section>
+
+      <section class="panel" style="min-height:0;">
+        <canvas id="viewCanvas" width="1500" height="760"></canvas>
+      </section>
+    </main>
+    <script type="module" src="./particles.js"></script>
+  </body>
+</html>

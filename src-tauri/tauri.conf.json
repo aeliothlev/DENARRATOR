@@ -1,0 +1,68 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "DENARRATOR",
+  "version": "0.1.0",
+  "identifier": "com.aelioth.denarrator",
+  "build": {
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "withGlobalTauri": true,
+    "windows": [
+      {
+        "label": "main",
+        "title": "DENARRATOR",
+        "url": "unified_tabs.html",
+        "width": 1440,
+        "height": 960,
+        "minWidth": 1024,
+        "minHeight": 700,
+        "resizable": true
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": ["app", "dmg"],
+    "fileAssociations": [
+      {
+        "ext": ["non"],
+        "name": "Denarrator Project",
+        "description": "DENARRATOR session file",
+        "role": "Editor",
+        "mimeType": "application/x-denarrator"
+      },
+      {
+        "ext": ["quence"],
+        "name": "Lazy.SEQ Project",
+        "description": "Lazy.SEQ timeline file",
+        "role": "Editor",
+        "mimeType": "application/x-lazy-seq"
+      },
+      {
+        "ext": ["cat"],
+        "name": "Morphogo Project",
+        "description": "Morphogo project file",
+        "role": "Editor",
+        "mimeType": "application/x-morphogo"
+      },
+      {
+        "ext": ["negat"],
+        "name": "Negativraum Config",
+        "description": "Negativraum config file",
+        "role": "Editor",
+        "mimeType": "application/x-negativraum"
+      }
+    ],
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ]
+  }
+}
